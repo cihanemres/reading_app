@@ -76,19 +76,28 @@ os.makedirs("static/uploads/audio", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Include routers
-app.include_router(auth.router)
-app.include_router(stories.router)
-app.include_router(reading.router)
-app.include_router(teacher.router)
-app.include_router(parent.router)
-app.include_router(admin.router)
-app.include_router(notifications.router)
-app.include_router(export.router)
-app.include_router(gamification.router)
-app.include_router(assignments.router)
-app.include_router(charts.router)
-app.include_router(messages.router)
-app.include_router(agenda.router)
+# Include routers with /api prefix
+app.include_router(auth.router, prefix="/api")
+app.include_router(stories.router, prefix="/api")
+app.include_router(reading.router, prefix="/api")
+app.include_router(teacher.router, prefix="/api")
+app.include_router(parent.router, prefix="/api")
+app.include_router(admin.router, prefix="/api")
+app.include_router(notifications.router, prefix="/api")
+app.include_router(export.router, prefix="/api")
+app.include_router(gamification.router, prefix="/api")
+app.include_router(assignments.router, prefix="/api")
+app.include_router(charts.router, prefix="/api")
+app.include_router(messages.router, prefix="/api")
+app.include_router(agenda.router, prefix="/api")
+
+# Mount frontend files (Must be after API routes to avoid conflict)
+# In Docker, frontend will be copied to /app/frontend
+# Local development needs fallback
+if os.path.exists("../frontend"):
+    app.mount("/", StaticFiles(directory="../frontend", html=True), name="frontend")
+elif os.path.exists("frontend"):
+    app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
 
 @app.on_event("startup")
 async def startup_event():
