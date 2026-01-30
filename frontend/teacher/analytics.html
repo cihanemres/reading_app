@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sınıf Analizi - Öğretmen Paneli</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 280px;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="dashboard.html" class="text-purple-600 hover:text-purple-700 mr-4"><i
+                            class="fas fa-arrow-left text-xl"></i></a>
+                    <span class="text-xl font-bold text-gray-800">Sınıf Analizi</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <p class="text-sm font-semibold text-gray-800" id="userName">Yükleniyor...</p>
+                    <button onclick="performLogout()" class="text-red-600 hover:text-red-700"><i
+                            class="fas fa-sign-out-alt text-xl"></i></button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Grade Filter -->
+        <div class="bg-white rounded-xl shadow-md p-4 mb-6">
+            <div class="flex flex-wrap items-center gap-2">
+                <label class="font-semibold">Sınıf:</label>
+                <button onclick="filterByGrade(null)"
+                    class="grade-btn px-4 py-2 rounded-lg bg-purple-600 text-white">Tümü</button>
+                <button onclick="filterByGrade(2)" class="grade-btn px-4 py-2 rounded-lg bg-gray-200">2. Sınıf</button>
+                <button onclick="filterByGrade(3)" class="grade-btn px-4 py-2 rounded-lg bg-gray-200">3. Sınıf</button>
+                <button onclick="filterByGrade(4)" class="grade-btn px-4 py-2 rounded-lg bg-gray-200">4. Sınıf</button>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white rounded-xl shadow-md p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Toplam Öğrenci</p>
+                        <p class="text-2xl font-bold text-purple-600" id="totalStudents">0</p>
+                    </div>
+                    <i class="fas fa-users text-3xl text-purple-200"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-md p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Tamamlanan Hikâye</p>
+                        <p class="text-2xl font-bold text-blue-600" id="totalCompletions">0</p>
+                    </div>
+                    <i class="fas fa-book-open text-3xl text-blue-200"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-md p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Ortalama Puan</p>
+                        <p class="text-2xl font-bold text-green-600" id="avgScore">0</p>
+                    </div>
+                    <i class="fas fa-chart-line text-3xl text-green-200"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-md p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Ort. Akıcılık</p>
+                        <p class="text-2xl font-bold text-orange-600" id="avgFluency">0</p>
+                    </div>
+                    <i class="fas fa-tachometer-alt text-3xl text-orange-200"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="grid md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h3 class="text-lg font-bold mb-4"><i class="fas fa-chart-bar text-purple-500 mr-2"></i>Öğrenci
+                    Karşılaştırması</h3>
+                <div class="chart-container"><canvas id="studentComparisonChart"></canvas></div>
+            </div>
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h3 class="text-lg font-bold mb-4"><i class="fas fa-chart-pie text-blue-500 mr-2"></i>Performans
+                    Dağılımı</h3>
+                <div class="chart-container"><canvas id="performanceDistributionChart"></canvas></div>
+            </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="grid md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h3 class="text-lg font-bold mb-4"><i class="fas fa-star text-yellow-500 mr-2"></i>Akıcılık vs Anlama
+                </h3>
+                <div class="chart-container"><canvas id="fluencyComprehensionChart"></canvas></div>
+            </div>
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h3 class="text-lg font-bold mb-4"><i class="fas fa-trophy text-yellow-500 mr-2"></i>En Başarılı
+                    Öğrenciler</h3>
+                <div id="topPerformers" class="space-y-3">
+                    <p class="text-gray-500 text-center py-8">Yükleniyor...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Table -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-lg font-bold mb-4"><i class="fas fa-table text-gray-500 mr-2"></i>Detaylı İstatistikler</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left">Öğrenci</th>
+                            <th class="px-4 py-3 text-center">Sınıf</th>
+                            <th class="px-4 py-3 text-center">Tamamlanan</th>
+                            <th class="px-4 py-3 text-center">Quiz Ort.</th>
+                            <th class="px-4 py-3 text-center">Akıcılık</th>
+                            <th class="px-4 py-3 text-center">Anlama</th>
+                        </tr>
+                    </thead>
+                    <tbody id="statsTableBody">
+                        <tr>
+                            <td colspan="6" class="text-center py-8 text-gray-500">Yükleniyor...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        if (!checkAuth()) window.location.href = '../login.html';
+        const user = getCurrentUserInfo();
+        if (user.rol !== 'ogretmen') { alert('Erişim yetkiniz yok!'); window.location.href = '../login.html'; }
+        document.getElementById('userName').textContent = user.ad_soyad;
+
+        let currentGrade = null;
+        let comparisonChart = null, distributionChart = null, fluencyChart = null;
+
+        async function loadAnalytics() {
+            try {
+                const token = localStorage.getItem('token');
+                const url = currentGrade
+                    ? `${API_BASE_URL}/teacher/analytics/class-summary?sinif_duzeyi=${currentGrade}`
+                    : `${API_BASE_URL}/teacher/analytics/class-summary`;
+
+                const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await response.json();
+
+                document.getElementById('totalStudents').textContent = data.class_summary.total_students;
+                document.getElementById('totalCompletions').textContent = data.class_summary.total_completions;
+                document.getElementById('avgScore').textContent = data.class_summary.average_score.toFixed(1);
+
+                // Calculate avg fluency
+                const avgFluency = data.student_stats.length > 0
+                    ? (data.student_stats.reduce((sum, s) => sum + (s.avg_fluency || 0), 0) / data.student_stats.length).toFixed(1)
+                    : '0';
+                document.getElementById('avgFluency').textContent = avgFluency;
+
+                updateCharts(data.student_stats);
+                updateTable(data.student_stats);
+                updateTopPerformers(data.student_stats);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        function updateCharts(stats) {
+            if (stats.length === 0) return;
+
+            const names = stats.map(s => s.name.split(' ')[0]);
+            const avgScores = stats.map(s => s.avg_quiz_score);
+
+            // Comparison Chart
+            if (comparisonChart) comparisonChart.destroy();
+            comparisonChart = new Chart(document.getElementById('studentComparisonChart'), {
+                type: 'bar',
+                data: {
+                    labels: names,
+                    datasets: [{ label: 'Quiz Puanı', data: avgScores, backgroundColor: 'rgba(102, 126, 234, 0.7)' }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            // Distribution Chart
+            const ranges = ['0-25', '26-50', '51-75', '76-100'];
+            const dist = [0, 0, 0, 0];
+            stats.forEach(s => {
+                const sc = s.avg_quiz_score;
+                if (sc <= 25) dist[0]++; else if (sc <= 50) dist[1]++; else if (sc <= 75) dist[2]++; else dist[3]++;
+            });
+
+            if (distributionChart) distributionChart.destroy();
+            distributionChart = new Chart(document.getElementById('performanceDistributionChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ranges,
+                    datasets: [{ data: dist, backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#10b981'] }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // Fluency vs Comprehension
+            const fluency = stats.map(s => s.avg_fluency || 0);
+            const comprehension = stats.map(s => s.avg_comprehension || 0);
+
+            if (fluencyChart) fluencyChart.destroy();
+            fluencyChart = new Chart(document.getElementById('fluencyComprehensionChart'), {
+                type: 'bar',
+                data: {
+                    labels: names,
+                    datasets: [
+                        { label: 'Akıcılık', data: fluency, backgroundColor: 'rgba(249, 115, 22, 0.7)' },
+                        { label: 'Anlama', data: comprehension, backgroundColor: 'rgba(16, 185, 129, 0.7)' }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function updateTable(stats) {
+            const tbody = document.getElementById('statsTableBody');
+            if (stats.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-500">Veri yok</td></tr>';
+                return;
+            }
+            tbody.innerHTML = stats.map(s => `
+                <tr class="border-t hover:bg-gray-50">
+                    <td class="px-4 py-3 font-medium">${s.name}</td>
+                    <td class="px-4 py-3 text-center">${s.grade}. Sınıf</td>
+                    <td class="px-4 py-3 text-center">${s.completed_stories}</td>
+                    <td class="px-4 py-3 text-center"><span class="px-2 py-1 bg-purple-100 text-purple-700 rounded">${s.avg_quiz_score}</span></td>
+                    <td class="px-4 py-3 text-center">${s.avg_fluency || '-'}</td>
+                    <td class="px-4 py-3 text-center">${s.avg_comprehension || '-'}</td>
+                </tr>
+            `).join('');
+        }
+
+        function updateTopPerformers(stats) {
+            const container = document.getElementById('topPerformers');
+            if (stats.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">Henüz veri yok</p>';
+                return;
+            }
+            const sorted = [...stats].sort((a, b) => b.avg_quiz_score - a.avg_quiz_score).slice(0, 5);
+            container.innerHTML = sorted.map((s, i) => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <span class="w-8 h-8 flex items-center justify-center rounded-full ${i === 0 ? 'bg-yellow-400' : i === 1 ? 'bg-gray-300' : i === 2 ? 'bg-orange-400' : 'bg-gray-200'} text-white font-bold">${i + 1}</span>
+                        <span class="font-medium">${s.name}</span>
+                    </div>
+                    <span class="font-bold text-purple-600">${s.avg_quiz_score} puan</span>
+                </div>
+            `).join('');
+        }
+
+        function filterByGrade(grade) {
+            currentGrade = grade;
+            document.querySelectorAll('.grade-btn').forEach(btn => {
+                btn.classList.remove('bg-purple-600', 'text-white');
+                btn.classList.add('bg-gray-200');
+            });
+            event.target.classList.remove('bg-gray-200');
+            event.target.classList.add('bg-purple-600', 'text-white');
+            loadAnalytics();
+        }
+
+        function performLogout() { localStorage.clear(); window.location.href = '../login.html'; }
+        loadAnalytics();
+    </script>
+</body>
+
+</html>

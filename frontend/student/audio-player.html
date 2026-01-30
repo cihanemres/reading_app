@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sesli Dinle - Okuma Geliştirme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .audio-player {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .progress-bar {
+            transition: width 0.1s linear;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="dashboard.html" class="text-purple-600 hover:text-purple-700 mr-4">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </a>
+                    <span class="text-xl font-bold text-gray-800">Sesli Dinle</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <p class="text-sm font-semibold text-gray-800" id="userName">Yükleniyor...</p>
+                    </div>
+                    <button onclick="performLogout()" class="text-red-600 hover:text-red-700">
+                        <i class="fas fa-sign-out-alt text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Story Header -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2" id="storyTitle">Yükleniyor...</h1>
+            <div class="flex items-center space-x-4 text-sm text-gray-600">
+                <span><i class="fas fa-layer-group mr-1"></i><span id="storyGrade">-</span>. Sınıf</span>
+                <span><i class="fas fa-file-word mr-1"></i><span id="wordCount">0</span> kelime</span>
+            </div>
+        </div>
+
+        <!-- Audio Player -->
+        <div class="audio-player rounded-xl shadow-lg p-8 mb-6 text-white">
+            <div class="text-center mb-8">
+                <div class="inline-block bg-white bg-opacity-20 rounded-full p-8 mb-4">
+                    <i class="fas fa-headphones text-6xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold">Hikâyeyi Dinle</h2>
+                <p class="text-purple-100 mt-2">Doğru telaffuzu öğren</p>
+            </div>
+
+            <!-- Audio Element -->
+            <audio id="audioElement" class="hidden">
+                <source id="audioSource" type="audio/mpeg">
+                Tarayıcınız ses dosyasını desteklemiyor.
+            </audio>
+
+            <!-- Progress Bar -->
+            <div class="bg-white bg-opacity-20 rounded-full h-2 mb-4 cursor-pointer" id="progressContainer">
+                <div class="progress-bar bg-white rounded-full h-2" id="progressBar" style="width: 0%"></div>
+            </div>
+
+            <!-- Time Display -->
+            <div class="flex justify-between text-sm text-purple-100 mb-6">
+                <span id="currentTime">0:00</span>
+                <span id="duration">0:00</span>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex justify-center items-center space-x-6">
+                <button id="rewindBtn" class="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full p-4 transition">
+                    <i class="fas fa-backward text-2xl"></i>
+                </button>
+
+                <button id="playPauseBtn"
+                    class="bg-white text-purple-600 rounded-full p-6 hover:bg-opacity-90 transition">
+                    <i class="fas fa-play text-3xl" id="playPauseIcon"></i>
+                </button>
+
+                <button id="forwardBtn" class="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full p-4 transition">
+                    <i class="fas fa-forward text-2xl"></i>
+                </button>
+            </div>
+
+            <!-- Volume Control -->
+            <div class="flex items-center justify-center space-x-4 mt-8">
+                <i class="fas fa-volume-down"></i>
+                <input type="range" id="volumeSlider" min="0" max="100" value="100" class="w-48">
+                <i class="fas fa-volume-up"></i>
+            </div>
+        </div>
+
+        <!-- Story Text (Scrollable) -->
+        <div class="bg-white rounded-xl shadow-md p-8">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">
+                <i class="fas fa-book-open mr-2 text-purple-600"></i>
+                Hikâye Metni
+            </h3>
+            <div id="storyText" class="text-gray-700 leading-relaxed max-h-96 overflow-y-auto">
+                <div class="text-center py-12">
+                    <i class="fas fa-spinner fa-spin text-4xl text-purple-600"></i>
+                    <p class="text-gray-600 mt-4">Yükleniyor...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-center space-x-4 mt-8">
+            <button onclick="window.location.href='story-view.html?id=' + storyId"
+                class="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 transition">
+                <i class="fas fa-book-reader mr-2"></i>Kendim Oku
+            </button>
+            <button onclick="window.location.href='practice.html?id=' + storyId"
+                class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition">
+                <i class="fas fa-redo mr-2"></i>Pratik Yap
+            </button>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        // Check authentication
+        if (!checkAuth()) {
+            window.location.href = '../login.html';
+        }
+
+        const user = getCurrentUserInfo();
+        document.getElementById('userName').textContent = user.ad_soyad;
+
+        // Get story ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const storyId = urlParams.get('id');
+
+        if (!storyId) {
+            alert('Hikâye bulunamadı!');
+            window.location.href = 'dashboard.html';
+        }
+
+        let story = null;
+        const audio = document.getElementById('audioElement');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const playPauseIcon = document.getElementById('playPauseIcon');
+        const progressBar = document.getElementById('progressBar');
+        const progressContainer = document.getElementById('progressContainer');
+        const currentTimeDisplay = document.getElementById('currentTime');
+        const durationDisplay = document.getElementById('duration');
+        const volumeSlider = document.getElementById('volumeSlider');
+
+        // Load story
+        async function loadStory() {
+            try {
+                story = await API.getStory(storyId);
+
+                document.getElementById('storyTitle').textContent = story.baslik;
+                document.getElementById('storyGrade').textContent = story.sinif_duzeyi;
+                document.getElementById('wordCount').textContent = story.kelime_sayisi || 0;
+                document.getElementById('storyText').innerHTML = story.metin.replace(/\n/g, '<br><br>');
+
+                // Load audio if available
+                if (story.ses_dosyasi) {
+                    document.getElementById('audioSource').src = `https://okuma-backend.onrender.com${story.ses_dosyasi}`;
+                    audio.load();
+                } else {
+                    alert('Bu hikâye için ses dosyası bulunmuyor!');
+                    window.location.href = 'dashboard.html';
+                }
+            } catch (error) {
+                console.error('Error loading story:', error);
+                alert('Hikâye yüklenirken hata oluştu!');
+                window.location.href = 'dashboard.html';
+            }
+        }
+
+        // Play/Pause
+        playPauseBtn.addEventListener('click', () => {
+            if (audio.paused) {
+                audio.play();
+                playPauseIcon.classList.remove('fa-play');
+                playPauseIcon.classList.add('fa-pause');
+            } else {
+                audio.pause();
+                playPauseIcon.classList.remove('fa-pause');
+                playPauseIcon.classList.add('fa-play');
+            }
+        });
+
+        // Rewind 10 seconds
+        document.getElementById('rewindBtn').addEventListener('click', () => {
+            audio.currentTime = Math.max(0, audio.currentTime - 10);
+        });
+
+        // Forward 10 seconds
+        document.getElementById('forwardBtn').addEventListener('click', () => {
+            audio.currentTime = Math.min(audio.duration, audio.currentTime + 10);
+        });
+
+        // Update progress bar
+        audio.addEventListener('timeupdate', () => {
+            const progress = (audio.currentTime / audio.duration) * 100;
+            progressBar.style.width = progress + '%';
+
+            currentTimeDisplay.textContent = formatTime(audio.currentTime);
+        });
+
+        // Update duration when loaded
+        audio.addEventListener('loadedmetadata', () => {
+            durationDisplay.textContent = formatTime(audio.duration);
+        });
+
+        // Click on progress bar to seek
+        progressContainer.addEventListener('click', (e) => {
+            const rect = progressContainer.getBoundingClientRect();
+            const percent = (e.clientX - rect.left) / rect.width;
+            audio.currentTime = percent * audio.duration;
+        });
+
+        // Volume control
+        volumeSlider.addEventListener('input', (e) => {
+            audio.volume = e.target.value / 100;
+        });
+
+        // Reset play button when audio ends
+        audio.addEventListener('ended', () => {
+            playPauseIcon.classList.remove('fa-pause');
+            playPauseIcon.classList.add('fa-play');
+            audio.currentTime = 0;
+        });
+
+        // Format time helper
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${String(secs).padStart(2, '0')}`;
+        }
+
+        // Initialize
+        loadStory();
+    </script>
+</body>
+
+</html>
+

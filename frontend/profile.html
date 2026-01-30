@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Ayarları</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <button onclick="history.back()" class="text-purple-600 hover:text-purple-700 mr-4">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </button>
+                    <span class="text-xl font-bold text-gray-800">Profil Ayarları</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <p class="text-sm font-semibold text-gray-800" id="userName">Yükleniyor...</p>
+                    <button onclick="performLogout()" class="text-red-600 hover:text-red-700">
+                        <i class="fas fa-sign-out-alt text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-xl shadow-md p-8">
+            <!-- Profile Header -->
+            <div class="flex items-center space-x-4 mb-8">
+                <div class="bg-purple-100 w-20 h-20 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-purple-600 text-3xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800" id="profileName">Yükleniyor...</h1>
+                    <p class="text-gray-600" id="profileRole">...</p>
+                </div>
+            </div>
+
+            <!-- Profile Form -->
+            <form id="profileForm" class="space-y-6">
+                <div>
+                    <label class="block font-semibold mb-2">Ad Soyad</label>
+                    <input type="text" id="formName" required
+                        class="w-full border-2 rounded-lg p-3 focus:border-purple-600 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-2">E-posta</label>
+                    <input type="email" id="formEmail" required
+                        class="w-full border-2 rounded-lg p-3 focus:border-purple-600 focus:outline-none">
+                </div>
+
+                <div class="flex space-x-4">
+                    <button type="button" onclick="history.back()"
+                        class="flex-1 bg-gray-300 py-3 rounded-lg font-semibold hover:bg-gray-400 transition">
+                        İptal
+                    </button>
+                    <button type="submit"
+                        class="flex-1 gradient-bg text-white py-3 rounded-lg font-semibold hover:opacity-90 transition">
+                        <i class="fas fa-save mr-2"></i>Kaydet
+                    </button>
+                </div>
+            </form>
+
+            <!-- Security Section -->
+            <div class="mt-8 pt-6 border-t">
+                <h2 class="text-lg font-bold text-gray-800 mb-4">
+                    <i class="fas fa-shield-alt text-purple-600 mr-2"></i>Güvenlik
+                </h2>
+                <div class="space-y-4">
+                    <button onclick="showChangePasswordModal()"
+                        class="w-full flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                        <div class="flex items-center">
+                            <i class="fas fa-key text-yellow-500 mr-3"></i>
+                            <div class="text-left">
+                                <p class="font-medium">Şifre Değiştir</p>
+                                <p class="text-sm text-gray-500">Güvenliğiniz için şifrenizi düzenli aralıklarla
+                                    değiştirin</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </button>
+
+                    <div class="p-4 bg-blue-50 rounded-lg">
+                        <div class="flex items-start">
+                            <i class="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
+                            <div>
+                                <p class="font-medium text-blue-800">Oturum Güvenliği</p>
+                                <p class="text-sm text-blue-600">30 dakika aktivite olmazsa oturumunuz otomatik
+                                    sonlandırılır.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/session.js"></script>
+    <script>
+        if (!checkAuth()) window.location.href = 'login.html';
+
+        const user = getCurrentUserInfo();
+        document.getElementById('userName').textContent = user.ad_soyad;
+        document.getElementById('profileName').textContent = user.ad_soyad;
+
+        const roleLabels = {
+            'ogrenci': 'Öğrenci',
+            'ogretmen': 'Öğretmen',
+            'veli': 'Veli',
+            'yonetici': 'Yönetici'
+        };
+        document.getElementById('profileRole').textContent = roleLabels[user.rol] || user.rol;
+
+        // Load current data
+        document.getElementById('formName').value = user.ad_soyad;
+        document.getElementById('formEmail').value = user.email;
+
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const data = {
+                ad_soyad: document.getElementById('formName').value,
+                email: document.getElementById('formEmail').value
+            };
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const updatedUser = await response.json();
+
+                    // Update localStorage
+                    const currentUser = JSON.parse(localStorage.getItem('user'));
+                    currentUser.ad_soyad = updatedUser.ad_soyad;
+                    currentUser.email = updatedUser.email;
+                    localStorage.setItem('user', JSON.stringify(currentUser));
+
+                    showToast('✅ Profil güncellendi!', 'success');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    const error = await response.json();
+                    showToast('❌ ' + (error.detail || 'Bilinmeyen hata'), 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                showToast('❌ Bağlantı hatası!', 'error');
+            }
+        });
+
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function performLogout() {
+            SessionManager.stop();
+            localStorage.clear();
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+
+</html>

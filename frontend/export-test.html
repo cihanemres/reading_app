@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="bg-gray-50 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">Excel Export Test</h1>
+
+        <div class="bg-white rounded-lg shadow p-6 mb-4">
+            <h2 class="text-xl font-semibold mb-4">Öğrenci Progress Export</h2>
+            <button onclick="exportStudentProgress(2, 'Ahmet Test')"
+                class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                <i class="fas fa-file-excel mr-2"></i>Öğrenci Raporu İndir
+            </button>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Sınıf Raporu Export</h2>
+            <button onclick="exportClassProgress(2)"
+                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                <i class="fas fa-file-excel mr-2"></i>2. Sınıf Raporu İndir
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://okuma-backend.onrender.com/api';
+
+        async function exportStudentProgress(studentId, studentName) {
+            try {
+                const token = localStorage.getItem('token');
+
+                // Show loading
+                const btn = event.target;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>İndiriliyor...';
+                btn.disabled = true;
+
+                const response = await fetch(`${API_BASE_URL}/export/student/${studentId}/progress`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Export failed');
+                }
+
+                // Get blob and create download
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `ogrenci_${studentName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+
+                // Restore button
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+
+                // Show success message
+                alert('✅ Rapor başarıyla indirildi!');
+            } catch (error) {
+                console.error('Export error:', error);
+                alert('❌ Rapor indirilemedi. Lütfen tekrar deneyin.');
+
+                // Restore button
+                const btn = event.target;
+                btn.innerHTML = '<i class="fas fa-file-excel mr-2"></i>Öğrenci Raporu İndir';
+                btn.disabled = false;
+            }
+        }
+
+        async function exportClassProgress(grade) {
+            try {
+                const token = localStorage.getItem('token');
+
+                // Show loading
+                const btn = event.target;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>İndiriliyor...';
+                btn.disabled = true;
+
+                const response = await fetch(`${API_BASE_URL}/export/class/${grade}/progress`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Export failed');
+                }
+
+                // Get blob and create download
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${grade}_sinif_raporu_${new Date().toISOString().split('T')[0]}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+
+                // Restore button
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+
+                // Show success message
+                alert('✅ Sınıf raporu başarıyla indirildi!');
+            } catch (error) {
+                console.error('Export error:', error);
+                alert('❌ Rapor indirilemedi. Lütfen tekrar deneyin.');
+
+                // Restore button
+                const btn = event.target;
+                btn.innerHTML = '<i class="fas fa-file-excel mr-2"></i>Sınıf Raporu İndir';
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+
+</html>
+

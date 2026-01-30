@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem İstatistikleri</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="dashboard.html" class="text-purple-600 hover:text-purple-700 mr-4">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </a>
+                    <span class="text-xl font-bold text-gray-800">Sistem İstatistikleri</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <p class="text-sm font-semibold text-gray-800" id="userName">Yükleniyor...</p>
+                    <button onclick="window.location.href='../profile.html'"
+                        class="text-purple-600 hover:text-purple-700">
+                        <i class="fas fa-user-cog text-xl"></i>
+                    </button>
+                    <button onclick="performLogout()" class="text-red-600 hover:text-red-700">
+                        <i class="fas fa-sign-out-alt text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Summary Cards -->
+        <div class="grid md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Toplam Kullanıcı</p>
+                        <p class="text-3xl font-bold text-purple-600" id="totalUsers">0</p>
+                    </div>
+                    <i class="fas fa-users text-4xl text-purple-200"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Toplam Hikâye</p>
+                        <p class="text-3xl font-bold text-blue-600" id="totalStories">0</p>
+                    </div>
+                    <i class="fas fa-book text-4xl text-blue-200"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Toplam Okuma</p>
+                        <p class="text-3xl font-bold text-green-600" id="totalReadings">0</p>
+                    </div>
+                    <i class="fas fa-book-reader text-4xl text-green-200"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Toplam Değerlendirme</p>
+                        <p class="text-3xl font-bold text-orange-600" id="totalEvaluations">0</p>
+                    </div>
+                    <i class="fas fa-clipboard-check text-4xl text-orange-200"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="grid md:grid-cols-2 gap-6 mb-8">
+            <!-- User Distribution -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h3 class="text-xl font-bold mb-4">Kullanıcı Dağılımı</h3>
+                <div class="chart-container">
+                    <canvas id="userDistributionChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Story Distribution by Grade -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h3 class="text-xl font-bold mb-4">Sınıf Seviyesine Göre Hikâyeler</h3>
+                <div class="chart-container">
+                    <canvas id="storyGradeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="grid md:grid-cols-2 gap-6 mb-8">
+            <!-- Activity Stats -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h3 class="text-xl font-bold mb-4">Aktivite İstatistikleri</h3>
+                <div class="chart-container">
+                    <canvas id="activityStatsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- User Roles -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h3 class="text-xl font-bold mb-4">Kullanıcı Rolleri</h3>
+                <div class="chart-container">
+                    <canvas id="userRolesChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Stats Table -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-xl font-bold mb-4">Detaylı Sistem Bilgileri</h3>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-semibold mb-3 text-purple-600">Kullanıcı İstatistikleri</h4>
+                    <div class="space-y-2">
+                        <div class="flex justify-between p-2 bg-gray-50 rounded">
+                            <span>Öğrenciler:</span>
+                            <span class="font-bold" id="studentCount">0</span>
+                        </div>
+                        <div class="flex justify-between p-2 bg-gray-50 rounded">
+                            <span>Öğretmenler:</span>
+                            <span class="font-bold" id="teacherCount">0</span>
+                        </div>
+                        <div class="flex justify-between p-2 bg-gray-50 rounded">
+                            <span>Veliler:</span>
+                            <span class="font-bold" id="parentCount">0</span>
+                        </div>
+                        <div class="flex justify-between p-2 bg-gray-50 rounded">
+                            <span>Yöneticiler:</span>
+                            <span class="font-bold" id="adminCount">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-3 text-blue-600">Hikâye İstatistikleri</h4>
+                    <div class="space-y-2">
+                        <div class="flex justify-between p-2 bg-gray-50 rounded">
+                            <span>2. Sınıf:</span>
+                            <span class="font-bold" id="grade2Stories">0</span>
+                        </div>
+                        <div class="flex justify-between p-2 bg-gray-50 rounded">
+                            <span>3. Sınıf:</span>
+                            <span class="font-bold" id="grade3Stories">0</span>
+                        </div>
+                        <div class="flex justify-between p-2 bg-gray-50 rounded">
+                            <span>4. Sınıf:</span>
+                            <span class="font-bold" id="grade4Stories">0</span>
+                        </div>
+                        <div class="flex justify-between p-2 bg-gray-50 rounded">
+                            <span>Toplam:</span>
+                            <span class="font-bold" id="totalStoriesDetail">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/chart_utils.js"></script>
+    <script>
+        if (!checkAuth()) window.location.href = '../login.html';
+        const user = getCurrentUserInfo();
+        if (user.rol !== 'yonetici') {
+            alert('Erişim yetkiniz yok!');
+            window.location.href = '../login.html';
+        }
+        document.getElementById('userName').textContent = user.ad_soyad;
+
+        let charts = {};
+
+        async function loadStatistics() {
+            try {
+                const stats = await API.getStatistics();
+
+                // Update summary cards
+                document.getElementById('totalUsers').textContent = stats.users.total;
+                document.getElementById('totalStories').textContent = stats.stories.total;
+                document.getElementById('totalReadings').textContent = stats.activity.total_readings;
+                document.getElementById('totalEvaluations').textContent = stats.activity.teacher_evaluations;
+
+                // Update detailed stats
+                document.getElementById('studentCount').textContent = stats.users.students;
+                document.getElementById('teacherCount').textContent = stats.users.teachers;
+                document.getElementById('parentCount').textContent = stats.users.parents;
+                document.getElementById('adminCount').textContent = stats.users.admins;
+
+                document.getElementById('grade2Stories').textContent = stats.stories.grade_2;
+                document.getElementById('grade3Stories').textContent = stats.stories.grade_3;
+                document.getElementById('grade4Stories').textContent = stats.stories.grade_4;
+                document.getElementById('totalStoriesDetail').textContent = stats.stories.total;
+
+                // Create charts
+                createCharts(stats);
+            } catch (error) {
+                console.error(error);
+                alert('İstatistikler yüklenirken hata oluştu!');
+            }
+        }
+
+        function createCharts(stats) {
+            // User Distribution Doughnut Chart
+            charts.userDist = ChartUtils.createDoughnutChart(
+                'userDistributionChart',
+                ['Öğrenciler', 'Öğretmenler', 'Veliler', 'Yöneticiler'],
+                [stats.users.students, stats.users.teachers, stats.users.parents, stats.users.admins]
+            );
+
+            // Story Grade Distribution Bar Chart
+            charts.storyGrade = ChartUtils.createComparisonBarChart(
+                'storyGradeChart',
+                ['2. Sınıf', '3. Sınıf', '4. Sınıf'],
+                [stats.stories.grade_2, stats.stories.grade_3, stats.stories.grade_4],
+                'Hikâye Sayısı'
+            );
+
+            // Activity Stats Bar Chart
+            charts.activity = ChartUtils.createComparisonBarChart(
+                'activityStatsChart',
+                ['Ön Okuma', 'Pratik', 'Quiz', 'Değerlendirme'],
+                [
+                    stats.activity.total_readings,
+                    stats.activity.total_practices,
+                    stats.activity.quiz_submissions,
+                    stats.activity.teacher_evaluations
+                ],
+                'Aktivite Sayısı'
+            );
+
+            // User Roles Pie Chart
+            const ctx = document.getElementById('userRolesChart').getContext('2d');
+            charts.roles = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Öğrenciler', 'Öğretmenler', 'Veliler', 'Yöneticiler'],
+                    datasets: [{
+                        data: [stats.users.students, stats.users.teachers, stats.users.parents, stats.users.admins],
+                        backgroundColor: [
+                            ChartUtils.colors.primary,
+                            ChartUtils.colors.secondary,
+                            ChartUtils.colors.success,
+                            ChartUtils.colors.danger
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        loadStatistics();
+    </script>
+</body>
+
+</html>

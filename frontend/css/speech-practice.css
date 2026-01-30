@@ -1,0 +1,324 @@
+/* Speech Practice Styles */
+
+/* Recording Button */
+.speech-practice-container {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.speech-practice-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #4a5568;
+}
+
+.speech-practice-title i {
+    color: #667eea;
+}
+
+/* Record Button */
+.record-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.record-btn-start {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.record-btn-start:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+.record-btn-stop {
+    background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(229, 62, 62, 0.4);
+}
+
+.record-btn-stop:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(229, 62, 62, 0.5);
+}
+
+.record-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Recording Animation */
+.recording-indicator {
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background: #fed7d7;
+    border-radius: 0.5rem;
+    color: #c53030;
+    font-weight: 500;
+}
+
+.recording-indicator.active {
+    display: flex;
+}
+
+.recording-dot {
+    width: 12px;
+    height: 12px;
+    background: #e53e3e;
+    border-radius: 50%;
+    animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(1.2);
+    }
+}
+
+/* Live Transcript */
+.live-transcript {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: white;
+    border: 2px dashed #cbd5e0;
+    border-radius: 0.5rem;
+    min-height: 80px;
+    font-size: 1rem;
+    color: #4a5568;
+}
+
+.live-transcript-label {
+    display: block;
+    font-size: 0.875rem;
+    color: #718096;
+    margin-bottom: 0.5rem;
+}
+
+.live-transcript-text {
+    font-style: italic;
+    color: #667eea;
+}
+
+/* Word Comparison Results */
+.word-comparison {
+    padding: 1.5rem;
+    background: white;
+    border-radius: 0.75rem;
+    line-height: 2.2;
+    font-size: 1.2rem;
+    margin: 1rem 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.word-comparison span {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    margin: 0.125rem;
+    border-radius: 0.375rem;
+    cursor: help;
+}
+
+.word-correct {
+    background: #c6f6d5;
+    color: #276749;
+    border: 1px solid #9ae6b4;
+}
+
+.word-incorrect {
+    background: #fed7d7;
+    color: #c53030;
+    border: 1px solid #fc8181;
+    text-decoration: line-through;
+    text-decoration-color: #c53030;
+}
+
+.word-missed {
+    background: #feebc8;
+    color: #c05621;
+    border: 1px solid #f6ad55;
+    opacity: 0.7;
+}
+
+/* Result Summary */
+.result-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: #f7fafc;
+    border-radius: 0.75rem;
+}
+
+.summary-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.summary-item.correct {
+    background: #c6f6d5;
+    color: #276749;
+}
+
+.summary-item.correct i {
+    color: #38a169;
+}
+
+.summary-item.incorrect {
+    background: #fed7d7;
+    color: #c53030;
+}
+
+.summary-item.incorrect i {
+    color: #e53e3e;
+}
+
+.summary-item.missed {
+    background: #feebc8;
+    color: #c05621;
+}
+
+.summary-item.missed i {
+    color: #dd6b20;
+}
+
+.summary-item.accuracy {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.summary-item.accuracy i {
+    color: white;
+}
+
+/* Browser Support Warning */
+.browser-warning {
+    padding: 1rem;
+    background: #feebc8;
+    border: 1px solid #f6ad55;
+    border-radius: 0.5rem;
+    color: #c05621;
+    margin-bottom: 1rem;
+}
+
+.browser-warning i {
+    margin-right: 0.5rem;
+}
+
+/* Result Panel */
+.speech-result-panel {
+    display: none;
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.speech-result-panel.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.result-panel-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #4a5568;
+}
+
+.result-panel-title i {
+    color: #38a169;
+}
+
+/* Try Again Button */
+.try-again-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 0.75rem 1.5rem;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.try-again-btn:hover {
+    background: #5a67d8;
+    transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .speech-practice-container {
+        padding: 1rem;
+    }
+    
+    .record-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .result-summary {
+        flex-direction: column;
+    }
+    
+    .summary-item {
+        justify-content: center;
+    }
+    
+    .word-comparison {
+        font-size: 1rem;
+        line-height: 2;
+    }
+}

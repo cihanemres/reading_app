@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Öğrenci Gelişimi - Okuma Geliştirme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="dashboard.html" class="text-purple-600 hover:text-purple-700 mr-4">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </a>
+                    <span class="text-xl font-bold text-gray-800">Öğrenci Gelişimi</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <p class="text-sm font-semibold text-gray-800" id="navUserName">Yükleniyor...</p>
+                        <p class="text-xs text-gray-500">Öğretmen</p>
+                    </div>
+                    <button onclick="performLogout()" class="text-red-600 hover:text-red-700">
+                        <i class="fas fa-sign-out-alt text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Student Header -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user-graduate text-purple-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800" id="studentName">Yükleniyor...</h1>
+                        <p class="text-gray-600" id="studentGrade">...</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm text-gray-500">Genel Gelişim</div>
+                    <div class="text-3xl font-bold text-green-600" id="totalImprovement">%0</div>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                    <div class="text-blue-600 font-semibold mb-1">Okunan Hikaye</div>
+                    <div class="text-2xl font-bold text-gray-800" id="storiesRead">0</div>
+                </div>
+                <div class="bg-green-50 p-4 rounded-xl border border-green-100">
+                    <div class="text-green-600 font-semibold mb-1">Ortalama Hız Artışı</div>
+                    <div class="text-2xl font-bold text-gray-800" id="avgSpeedIncrease">0 kelime/dk</div>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-xl border border-purple-100">
+                    <div class="text-purple-600 font-semibold mb-1">Ortalama Anlama</div>
+                    <div class="text-2xl font-bold text-gray-800" id="avgComprehension">%0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">
+                    <i class="fas fa-chart-line text-blue-600 mr-2"></i>Okuma Hızı Gelişimi
+                </h3>
+                <canvas id="speedChart" height="200"></canvas>
+            </div>
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">
+                    <i class="fas fa-chart-bar text-green-600 mr-2"></i>Haftalık Aktivite
+                </h3>
+                <canvas id="activityChart" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Stories List -->
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Okuma Geçmişi</h2>
+        <div id="storiesContainer" class="space-y-4">
+            <div class="text-center py-12">
+                <i class="fas fa-spinner fa-spin text-4xl text-purple-600"></i>
+                <p class="text-gray-600 mt-4">Veriler yükleniyor...</p>
+            </div>
+        </div>
+
+        <!-- Speech Practice History -->
+        <h2 class="text-xl font-bold text-gray-800 mb-4 mt-8">
+            <i class="fas fa-microphone text-purple-600 mr-2"></i>Sesli Okuma Geçmişi
+        </h2>
+        <div id="speechPracticeContainer" class="space-y-4">
+            <div class="text-center py-12">
+                <i class="fas fa-spinner fa-spin text-4xl text-purple-600"></i>
+                <p class="text-gray-600 mt-4">Sesli okuma verileri yükleniyor...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Evaluation Modal -->
+    <div id="evalModal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 overflow-y-auto">
+        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 my-8">
+            <div class="gradient-bg text-white p-6 rounded-t-xl flex justify-between items-center">
+                <h2 class="text-2xl font-bold">Değerlendirme</h2>
+                <button onclick="closeEvalModal()" class="text-white hover:text-gray-200">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div class="p-6">
+                <!-- Student Answers Section -->
+                <div class="mb-8 bg-gray-50 p-4 rounded-lg">
+                    <h3 class="font-bold text-gray-800 mb-3">Öğrenci Cevapları</h3>
+                    <div id="studentAnswers" class="space-y-3 text-sm">
+                        <p class="text-gray-500 italic">Cevaplar yükleniyor...</p>
+                    </div>
+                </div>
+
+                <form id="evalForm" class="space-y-6">
+                    <input type="hidden" id="evalStoryId">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Fluency Score -->
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Akıcılık Puanı (1-10)</label>
+                            <input type="number" id="fluencyScore" min="1" max="10" required
+                                class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-purple-600 focus:outline-none">
+                        </div>
+
+                        <!-- Open Question Score -->
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Açık Uçlu Soru Puanı (1-10)</label>
+                            <input type="number" id="questionScore" min="1" max="10" required
+                                class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-purple-600 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Mistakes -->
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Hatalı Okunan Kelimeler</label>
+                        <textarea id="mistakes" rows="2"
+                            class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-purple-600 focus:outline-none"
+                            placeholder="Virgülle ayırarak yazınız..."></textarea>
+                    </div>
+
+                    <!-- Teacher Comment -->
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Öğretmen Yorumu</label>
+                        <textarea id="teacherComment" rows="3"
+                            class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-purple-600 focus:outline-none"
+                            placeholder="Öğrenciye notunuz..."></textarea>
+                    </div>
+
+                    <button type="submit"
+                        class="w-full gradient-bg text-white py-3 rounded-lg font-semibold hover:opacity-90 transition">
+                        <i class="fas fa-save mr-2"></i>Değerlendirmeyi Kaydet
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        // Check authentication
+        if (!checkAuth()) {
+            window.location.href = '../login.html';
+        }
+
+        const user = getCurrentUserInfo();
+        if (user.rol !== 'ogretmen') {
+            alert('Bu sayfaya erişim yetkiniz yok!');
+            window.location.href = '../login.html';
+        }
+
+        document.getElementById('navUserName').textContent = user.ad_soyad;
+
+        // Get student ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const studentId = urlParams.get('id');
+
+        if (!studentId) {
+            alert('Öğrenci seçilmedi!');
+            window.location.href = 'dashboard.html';
+        }
+
+        // Load student data
+        async function loadStudentData() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`https://okuma-backend.onrender.com/api/teacher/student/${studentId}/progress`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to load data');
+
+                const data = await response.json();
+                displayData(data);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('storiesContainer').innerHTML = `
+                    <div class="text-center py-12">
+                        <i class="fas fa-exclamation-triangle text-4xl text-red-600"></i>
+                        <p class="text-red-600 mt-4">Veriler yüklenirken hata oluştu!</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displayData(data) {
+            // Header Info
+            document.getElementById('studentName').textContent = data.student.ad_soyad;
+            document.getElementById('studentGrade').textContent = `${data.student.sinif_duzeyi}. Sınıf Öğrencisi`;
+
+            // Stats
+            document.getElementById('totalImprovement').textContent = `%${Math.round(data.summary.total_improvement_percentage || 0)}`;
+            document.getElementById('storiesRead').textContent = data.summary.stories_read || 0;
+            document.getElementById('avgSpeedIncrease').textContent = `${Math.round(data.summary.avg_speed_increase || 0)} kelime/dk`;
+
+            // Stories List
+            const container = document.getElementById('storiesContainer');
+            if (!data.reading_history || data.reading_history.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 bg-white rounded-xl shadow-sm">
+                        <i class="fas fa-book-open text-4xl text-gray-300"></i>
+                        <p class="text-gray-500 mt-4">Henüz okuma aktivitesi yok.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = data.reading_history.map(story => `
+                <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition border-l-4 ${story.evaluation ? 'border-green-500' : 'border-yellow-500'}">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">${story.story_title}</h3>
+                            <div class="flex items-center space-x-4 mt-2 text-sm text-gray-600">
+                                <span><i class="fas fa-tachometer-alt mr-1 text-blue-500"></i>Gelişim: %${Math.round(story.improvement.improvement_percentage)}</span>
+                                <span><i class="fas fa-clock mr-1 text-purple-500"></i>Hız: ${story.improvement.pre_reading_speed} → ${story.improvement.post_reading_speed}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3">
+                            ${story.evaluation ? `
+                                <div class="text-right mr-4">
+                                    <div class="text-xs text-gray-500">Öğretmen Puanı</div>
+                                    <div class="font-bold text-green-600">
+                                        ${story.evaluation.akicilik_puan}/10
+                                    </div>
+                                </div>
+                            ` : `
+                                <span class="bg-yellow-100 text-yellow-800 text-xs px-3 py-1 rounded-full">
+                                    Değerlendirme Bekliyor
+                                </span>
+                            `}
+                            
+                            <button onclick="openEvalModal(${story.story_id})" 
+                                class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition flex items-center">
+                                <i class="fas fa-edit mr-2"></i>
+                                ${story.evaluation ? 'Düzenle' : 'Değerlendir'}
+                            </button>
+                        </div>
+                    </div>
+                    
+                    ${story.evaluation && story.evaluation.ogretmen_yorumu ? `
+                        <div class="mt-4 pt-4 border-t border-gray-100">
+                            <p class="text-sm text-gray-600">
+                                <span class="font-semibold text-purple-600">Yorumunuz:</span> 
+                                ${story.evaluation.ogretmen_yorumu}
+                            </p>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function openEvalModal(storyId) {
+            document.getElementById('evalStoryId').value = storyId;
+            document.getElementById('evalModal').classList.remove('hidden');
+            document.getElementById('evalModal').classList.add('flex');
+
+            // Load answers
+            const answersContainer = document.getElementById('studentAnswers');
+            answersContainer.innerHTML = '<p class="text-gray-500 italic"><i class="fas fa-spinner fa-spin mr-2"></i>Cevaplar yükleniyor...</p>';
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`https://okuma-backend.onrender.com/api/teacher/student/${studentId}/story/${storyId}/answers`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    answersContainer.innerHTML = `
+                        <div class="grid grid-cols-1 gap-2">
+                            <div class="bg-white p-2 rounded border"><span class="font-semibold">Soru 1:</span> ${data.answers.q1 || '-'}</div>
+                            <div class="bg-white p-2 rounded border"><span class="font-semibold">Soru 2:</span> ${data.answers.q2 || '-'}</div>
+                            <div class="bg-white p-2 rounded border"><span class="font-semibold">Soru 3:</span> ${data.answers.q3 || '-'}</div>
+                            <div class="bg-white p-2 rounded border"><span class="font-semibold">Soru 4:</span> ${data.answers.q4 || '-'}</div>
+                            <div class="bg-purple-50 p-3 rounded border border-purple-200 mt-2">
+                                <span class="font-semibold text-purple-700 block mb-1">Açık Uçlu Soru:</span> 
+                                ${data.answers.acik_uclu || '<span class="text-gray-400">Cevap yok</span>'}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    answersContainer.innerHTML = '<p class="text-red-500">Cevaplar bulunamadı.</p>';
+                }
+            } catch (error) {
+                console.error(error);
+                answersContainer.innerHTML = '<p class="text-red-500">Hata oluştu.</p>';
+            }
+        }
+
+        function closeEvalModal() {
+            document.getElementById('evalModal').classList.add('hidden');
+            document.getElementById('evalModal').classList.remove('flex');
+            document.getElementById('evalForm').reset();
+        }
+
+        document.getElementById('evalForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const storyId = document.getElementById('evalStoryId').value;
+            const evalData = {
+                ogrenci_id: parseInt(studentId),
+                story_id: parseInt(storyId),
+                akicilik_puan: parseInt(document.getElementById('fluencyScore').value),
+                acik_soru_puani: parseInt(document.getElementById('questionScore').value),
+                hatali_kelime: document.getElementById('mistakes').value,
+                ogretmen_yorumu: document.getElementById('teacherComment').value
+            };
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('https://okuma-backend.onrender.com/api/teacher/evaluate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(evalData)
+                });
+
+                if (response.ok) {
+                    alert('Değerlendirme kaydedildi!');
+                    closeEvalModal();
+                    loadStudentData(); // Refresh data
+                } else {
+                    alert('Hata oluştu!');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Bağlantı hatası!');
+            }
+        });
+
+        // Initialize
+        loadStudentData().then(() => {
+            const openEvalStoryId = urlParams.get('open_eval');
+            if (openEvalStoryId) {
+                openEvalModal(openEvalStoryId);
+            }
+            // Load speech practice after student data
+            loadSpeechPractice();
+        });
+
+        // Load speech practice history
+        async function loadSpeechPractice() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`https://okuma-backend.onrender.com/api/teacher/student/${studentId}/speech-practice`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('Failed to load speech practice');
+
+                const data = await response.json();
+                displaySpeechPractice(data);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('speechPracticeContainer').innerHTML = `
+                    <div class="text-center py-12 bg-white rounded-xl shadow-sm">
+                        <i class="fas fa-microphone-slash text-4xl text-gray-300"></i>
+                        <p class="text-gray-500 mt-4">Sesli okuma verisi bulunamadı.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displaySpeechPractice(data) {
+            const container = document.getElementById('speechPracticeContainer');
+
+            if (!data.stories || data.stories.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 bg-white rounded-xl shadow-sm">
+                        <i class="fas fa-microphone-slash text-4xl text-gray-300"></i>
+                        <p class="text-gray-500 mt-4">Henüz sesli okuma aktivitesi yok.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = data.stories.map(story => `
+                <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">
+                        <i class="fas fa-book-open text-purple-600 mr-2"></i>${story.story_title}
+                    </h3>
+                    
+                    <div class="space-y-3">
+                        ${story.attempts.map(attempt => {
+                const accuracyColor = attempt.dogruluk_orani >= 80 ? 'bg-green-50 border-green-200 text-green-800' :
+                    attempt.dogruluk_orani >= 60 ? 'bg-yellow-50 border-yellow-200 text-yellow-800' :
+                        'bg-red-50 border-red-200 text-red-800';
+
+                const date = new Date(attempt.created_at).toLocaleDateString('tr-TR', {
+                    day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'
+                });
+
+                return `
+                                <div class="flex flex-col md:flex-row justify-between items-start md:items-center p-3 rounded-lg border ${accuracyColor}">
+                                    <div class="flex items-center space-x-4">
+                                        <span class="font-bold">Deneme #${attempt.deneme_no}</span>
+                                        <span class="text-sm opacity-75">${date}</span>
+                                    </div>
+                                    <div class="flex items-center space-x-6 mt-2 md:mt-0">
+                                        <div class="flex flex-col items-center">
+                                            <span class="text-xs opacity-75">Doğruluk</span>
+                                            <span class="font-bold text-lg">%${attempt.dogruluk_orani}</span>
+                                        </div>
+                                        <div class="flex flex-col items-center">
+                                            <span class="text-xs opacity-75">Doğru</span>
+                                            <span class="font-bold">${attempt.dogru_kelime}</span>
+                                        </div>
+                                        <div class="flex flex-col items-center">
+                                            <span class="text-xs opacity-75">Hatalı</span>
+                                            <span class="font-bold">${attempt.hatali_kelime}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                ${attempt.hatali_kelimeler && attempt.hatali_kelimeler.length > 0 ? `
+                                    <div class="ml-4 mt-1 text-sm text-gray-600">
+                                        <span class="font-semibold text-red-500">Hatalı Kelimeler:</span> 
+                                        ${attempt.hatali_kelimeler.join(', ')}
+                                    </div>
+                                ` : ''}
+                            `;
+            }).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Chart rendering
+        async function loadCharts() {
+            try {
+                // Load reading speed chart data
+                const speedData = await API.getStudentReadingSpeedChart(studentId);
+                if (speedData && speedData.labels) {
+                    new Chart(document.getElementById('speedChart'), {
+                        type: 'line',
+                        data: {
+                            labels: speedData.labels,
+                            datasets: [{
+                                label: 'Okuma Hızı (kelime/dk)',
+                                data: speedData.values,
+                                borderColor: '#667eea',
+                                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: { beginAtZero: true }
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                console.log('Speed chart error:', e);
+                document.getElementById('speedChart').parentElement.innerHTML +=
+                    '<p class="text-gray-500 text-center mt-4">Grafik verisi bulunamadı</p>';
+            }
+
+            // Weekly activity chart (mock data based on stories)
+            const days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+            const activityData = days.map(() => Math.floor(Math.random() * 3));
+
+            new Chart(document.getElementById('activityChart'), {
+                type: 'bar',
+                data: {
+                    labels: days,
+                    datasets: [{
+                        label: 'Hikaye Sayısı',
+                        data: activityData,
+                        backgroundColor: '#10b981',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    }
+                }
+            });
+        }
+
+        // Load charts after page loads
+        setTimeout(loadCharts, 1000);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,248 @@
+/**
+ * Gamification Styles
+ * Badge cards, modals, leaderboard, and animations
+ */
+
+/* ===== BADGE CARDS ===== */
+.badge-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-top: 4px solid;
+}
+
+.badge-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.badge-icon-large {
+    font-size: 48px;
+    margin-bottom: 8px;
+}
+
+.badge-icon-huge {
+    font-size: 80px;
+    animation: pulse 1s infinite;
+}
+
+.badge-date {
+    display: block;
+    margin-top: 8px;
+}
+
+/* Badge Colors */
+.badge-card.gold {
+    border-top-color: #FFD700;
+}
+
+.badge-card.blue {
+    border-top-color: #3B82F6;
+}
+
+.badge-card.purple {
+    border-top-color: #8B5CF6;
+}
+
+.badge-card.red {
+    border-top-color: #EF4444;
+}
+
+.badge-card.green {
+    border-top-color: #10B981;
+}
+
+.badge-card.orange {
+    border-top-color: #F59E0B;
+}
+
+.badge-card.pink {
+    border-top-color: #EC4899;
+}
+
+/* ===== BADGE MODAL ===== */
+.badge-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s;
+}
+
+.badge-celebration {
+    background: white;
+    border-radius: 20px;
+    padding: 48px;
+    text-align: center;
+    max-width: 450px;
+    animation: bounceIn 0.6s;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== LEADERBOARD ===== */
+.leaderboard-item {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.leaderboard-item:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.leaderboard-item.top-three {
+    background: linear-gradient(135deg, #FFF9E6 0%, #FFFFFF 100%);
+    border-left: 4px solid #FFD700;
+}
+
+.leaderboard-rank {
+    font-size: 28px;
+    font-weight: bold;
+    width: 60px;
+    text-align: center;
+}
+
+.leaderboard-rank.first {
+    color: #FFD700;
+    font-size: 36px;
+}
+
+.leaderboard-rank.second {
+    color: #C0C0C0;
+    font-size: 32px;
+}
+
+.leaderboard-rank.third {
+    color: #CD7F32;
+    font-size: 30px;
+}
+
+/* ===== PROGRESS BAR ===== */
+.progress-bar {
+    width: 100%;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: white;
+    border-radius: 6px;
+    transition: width 0.5s ease-out;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes bounceIn {
+    0% {
+        transform: scale(0.3);
+        opacity: 0;
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    70% {
+        transform: scale(0.9);
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Confetti effect for badge modal */
+.badge-celebration::before {
+    content: '🎊';
+    position: absolute;
+    top: -20px;
+    left: 10%;
+    font-size: 40px;
+    animation: float 3s ease-in-out infinite;
+}
+
+.badge-celebration::after {
+    content: '🎉';
+    position: absolute;
+    top: -20px;
+    right: 10%;
+    font-size: 40px;
+    animation: float 3s ease-in-out infinite 0.5s;
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-20px) rotate(10deg);
+    }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .badge-card {
+        padding: 16px;
+    }
+
+    .badge-icon-large {
+        font-size: 36px;
+    }
+
+    .badge-celebration {
+        padding: 32px 24px;
+        margin: 20px;
+    }
+
+    .badge-icon-huge {
+        font-size: 60px;
+    }
+
+    .leaderboard-rank {
+        font-size: 20px;
+        width: 50px;
+    }
+}

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yönetici Paneli - Okuma Geliştirme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="bg-gray-50 font-sans">
+    <!-- Navbar -->
+    <nav class="bg-purple-800 text-white p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-user-shield text-2xl"></i>
+                <h1 class="text-xl font-bold">Yönetici Paneli</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span id="userName" class="font-medium">Admin</span>
+                <button onclick="logout()" class="hover:text-red-300 transition"><i class="fas fa-sign-out-alt"></i>
+                    Çıkış</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto p-6">
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <!-- User Management -->
+            <a href="user-management.html" class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition group">
+                <div class="flex items-center mb-4">
+                    <div class="bg-blue-100 p-3 rounded-lg group-hover:bg-blue-200 transition">
+                        <i class="fas fa-users text-2xl text-blue-600"></i>
+                    </div>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800">Kullanıcı Yönetimi</h3>
+                <p class="text-sm text-gray-500 mt-1">Tüm kullanıcıları yönet</p>
+            </a>
+
+            <!-- Story Management -->
+            <a href="story-management.html" class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition group">
+                <div class="flex items-center mb-4">
+                    <div class="bg-purple-100 p-3 rounded-lg group-hover:bg-purple-200 transition">
+                        <i class="fas fa-book text-2xl text-purple-600"></i>
+                    </div>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800">Hikaye Yönetimi</h3>
+                <p class="text-sm text-gray-500 mt-1">Hikaye ekle/düzenle</p>
+            </a>
+
+            <!-- Statistics -->
+            <a href="statistics.html" class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition group">
+                <div class="flex items-center mb-4">
+                    <div class="bg-green-100 p-3 rounded-lg group-hover:bg-green-200 transition">
+                        <i class="fas fa-chart-bar text-2xl text-green-600"></i>
+                    </div>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800">İstatistikler</h3>
+                <p class="text-sm text-gray-500 mt-1">Sistem raporları</p>
+            </a>
+
+            <!-- Quiz Management - Goes to story management first -->
+            <a href="story-management.html" class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition group">
+                <div class="flex items-center mb-4">
+                    <div class="bg-yellow-100 p-3 rounded-lg group-hover:bg-yellow-200 transition">
+                        <i class="fas fa-question-circle text-2xl text-yellow-600"></i>
+                    </div>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800">Quiz Yönetimi</h3>
+                <p class="text-sm text-gray-500 mt-1">Hikaye seçerek quiz ekle</p>
+            </a>
+        </div>
+
+        <!-- Pending Users Section -->
+        <h2 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">
+            <i class="fas fa-user-clock mr-2 text-orange-500"></i>Onay Bekleyen Kullanıcılar
+        </h2>
+
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ad
+                            Soyad</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlem
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody" class="bg-white divide-y divide-gray-200">
+                    <!-- Rows will be populated here -->
+                </tbody>
+            </table>
+            <div id="noUsersMessage" class="hidden p-8 text-center text-gray-500">
+                Onay bekleyen kullanıcı bulunmamaktadır.
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        // Check Auth using auth.js
+        if (!checkAuth()) window.location.href = '../login.html';
+        const user = getCurrentUserInfo();
+        if (user.rol !== 'yonetici' && user.rol !== 'ogretmen') {
+            alert('Yetkisiz erişim!');
+            window.location.href = '../index.html';
+        }
+        document.getElementById('userName').textContent = user.ad_soyad;
+
+        async function loadPendingUsers() {
+            try {
+                const users = await API.getPendingUsers();
+                const tbody = document.getElementById('usersTableBody');
+                const noUsers = document.getElementById('noUsersMessage');
+
+                tbody.innerHTML = '';
+
+                if (users.length === 0) {
+                    noUsers.classList.remove('hidden');
+                    return;
+                }
+
+                noUsers.classList.add('hidden');
+                users.forEach(u => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">${u.ad_soyad}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${u.email}</td>
+                        <td class="px-6 py-4 whitespace-nowrap capitalize">${u.rol}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <button onclick="handleApprove(${u.id})" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition">
+                                <i class="fas fa-check mr-1"></i> Onayla
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        async function handleApprove(userId) {
+            if (!confirm('Bu kullanıcıyı onaylamak istediğinize emin misiniz?')) return;
+            try {
+                await API.approveUser(userId);
+                alert('Kullanıcı onaylandı.');
+                loadPendingUsers();
+            } catch (error) {
+                alert('Onaylama başarısız oldu.');
+                console.error(error);
+            }
+        }
+
+        // Initialize
+        loadPendingUsers();
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '../login.html';
+        }
+    </script>
+</body>
+
+</html>

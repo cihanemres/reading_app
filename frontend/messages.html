@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesajlar - Okuma Geliştirme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .message-item {
+            transition: all 0.2s;
+        }
+
+        .message-item:hover {
+            background-color: #f3f4f6;
+        }
+
+        .message-item.unread {
+            background-color: #ede9fe;
+            border-left: 4px solid #8b5cf6;
+        }
+
+        .chat-bubble {
+            max-width: 75%;
+        }
+
+        .chat-bubble.mine {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+            border-radius: 1rem 1rem 0 1rem;
+        }
+
+        .chat-bubble.theirs {
+            background: #f3f4f6;
+            border-radius: 1rem 1rem 1rem 0;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="#" onclick="goBack()" class="text-purple-600 hover:text-purple-700 mr-4">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </a>
+                    <span class="text-xl font-bold text-gray-800">
+                        <i class="fas fa-envelope mr-2 text-purple-600"></i>Mesajlar
+                    </span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="unreadBadge" class="hidden bg-red-500 text-white text-xs px-2 py-1 rounded-full"></span>
+                    <button onclick="showComposeModal()"
+                        class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition">
+                        <i class="fas fa-plus mr-2"></i>Yeni Mesaj
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <div class="grid lg:grid-cols-3 gap-6">
+            <!-- Left: Message List -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <!-- Tabs -->
+                    <div class="flex border-b">
+                        <button onclick="switchTab('inbox')" id="tabInbox"
+                            class="flex-1 py-3 text-center font-semibold text-purple-600 border-b-2 border-purple-600">
+                            <i class="fas fa-inbox mr-1"></i> Gelen
+                        </button>
+                        <button onclick="switchTab('sent')" id="tabSent"
+                            class="flex-1 py-3 text-center font-semibold text-gray-500 hover:text-purple-600">
+                            <i class="fas fa-paper-plane mr-1"></i> Gönderilen
+                        </button>
+                    </div>
+
+                    <!-- Message List -->
+                    <div id="messageList" class="divide-y max-h-[70vh] overflow-y-auto">
+                        <div class="text-center py-12">
+                            <i class="fas fa-spinner fa-spin text-3xl text-purple-600"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Message Content / Conversation -->
+            <div class="lg:col-span-2">
+                <div id="messageContent" class="bg-white rounded-xl shadow-md p-6 min-h-[70vh]">
+                    <div class="text-center text-gray-400 py-12">
+                        <i class="fas fa-envelope-open text-6xl mb-4"></i>
+                        <p>Okumak için bir mesaj seçin</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compose Modal -->
+    <div id="composeModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-6 max-w-lg w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">
+                    <i class="fas fa-pen text-purple-600 mr-2"></i>Yeni Mesaj
+                </h2>
+                <button onclick="closeComposeModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Alıcı</label>
+                    <select id="receiverSelect"
+                        class="w-full border-2 border-gray-200 rounded-lg px-4 py-3 focus:border-purple-500 focus:outline-none">
+                        <option value="">Seçin...</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Konu (İsteğe Bağlı)</label>
+                    <input type="text" id="messageSubject" placeholder="Konu..."
+                        class="w-full border-2 border-gray-200 rounded-lg px-4 py-3 focus:border-purple-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Mesaj</label>
+                    <textarea id="messageText" rows="5" placeholder="Mesajınızı yazın..."
+                        class="w-full border-2 border-gray-200 rounded-lg px-4 py-3 focus:border-purple-500 focus:outline-none"></textarea>
+                </div>
+            </div>
+
+            <div id="composeError" class="hidden bg-red-100 text-red-600 px-4 py-2 rounded-lg mt-4 text-sm"></div>
+
+            <div class="flex gap-4 mt-6">
+                <button onclick="closeComposeModal()"
+                    class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-bold hover:bg-gray-300 transition">
+                    İptal
+                </button>
+                <button id="sendBtn" onclick="sendMessage()"
+                    class="flex-1 bg-purple-600 text-white py-3 rounded-lg font-bold hover:bg-purple-700 transition">
+                    <i class="fas fa-paper-plane mr-2"></i>Gönder
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        if (!checkAuth()) window.location.href = 'login.html';
+        const user = getCurrentUserInfo();
+
+        let currentTab = 'inbox';
+        let selectedMessageId = null;
+
+        function goBack() {
+            if (user.rol === 'ogrenci') {
+                window.location.href = 'student/dashboard.html';
+            } else if (user.rol === 'ogretmen') {
+                window.location.href = 'teacher/dashboard.html';
+            } else {
+                window.location.href = 'login.html';
+            }
+        }
+
+        async function loadMessages() {
+            try {
+                const endpoint = currentTab === 'inbox' ? 'inbox' : 'sent';
+                const response = await fetch(`${API_BASE_URL}/messages/${endpoint}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                const data = await response.json();
+
+                if (currentTab === 'inbox' && data.unread > 0) {
+                    document.getElementById('unreadBadge').textContent = data.unread;
+                    document.getElementById('unreadBadge').classList.remove('hidden');
+                } else {
+                    document.getElementById('unreadBadge').classList.add('hidden');
+                }
+
+                renderMessageList(data.messages || []);
+            } catch (e) {
+                console.error(e);
+                document.getElementById('messageList').innerHTML = `
+                    <div class="text-center py-12 text-red-500">
+                        <i class="fas fa-exclamation-triangle text-3xl mb-2"></i>
+                        <p>Mesajlar yüklenemedi</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderMessageList(messages) {
+            const container = document.getElementById('messageList');
+
+            if (messages.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-gray-400">
+                        <i class="fas fa-inbox text-4xl mb-2"></i>
+                        <p>Mesaj yok</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = messages.map(msg => {
+                const otherName = currentTab === 'inbox' ? msg.sender_name : msg.receiver_name;
+                const date = new Date(msg.created_at).toLocaleDateString('tr-TR');
+                const unreadClass = !msg.is_read && currentTab === 'inbox' ? 'unread' : '';
+
+                return `
+                    <div class="message-item p-4 cursor-pointer ${unreadClass}" onclick="openMessage(${msg.id}, ${currentTab === 'inbox' ? msg.sender_id : msg.receiver_id})">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <p class="font-semibold text-gray-800">${otherName}</p>
+                                <p class="text-sm text-gray-600 truncate">${msg.subject || 'Konu yok'}</p>
+                                <p class="text-xs text-gray-400 mt-1">${date}</p>
+                            </div>
+                            ${!msg.is_read && currentTab === 'inbox' ? '<span class="w-3 h-3 bg-purple-600 rounded-full"></span>' : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.getElementById('tabInbox').className = tab === 'inbox'
+                ? 'flex-1 py-3 text-center font-semibold text-purple-600 border-b-2 border-purple-600'
+                : 'flex-1 py-3 text-center font-semibold text-gray-500 hover:text-purple-600';
+            document.getElementById('tabSent').className = tab === 'sent'
+                ? 'flex-1 py-3 text-center font-semibold text-purple-600 border-b-2 border-purple-600'
+                : 'flex-1 py-3 text-center font-semibold text-gray-500 hover:text-purple-600';
+            loadMessages();
+        }
+
+        async function openMessage(msgId, otherUserId) {
+            selectedMessageId = msgId;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/messages/conversation/${otherUserId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                const data = await response.json();
+
+                renderConversation(data);
+                loadMessages(); // Refresh to update read status
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function renderConversation(data) {
+            const container = document.getElementById('messageContent');
+
+            container.innerHTML = `
+                <div class="flex items-center justify-between pb-4 border-b mb-4">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                            <i class="fas fa-user text-purple-600"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-gray-800">${data.user.name}</p>
+                            <p class="text-sm text-gray-500">${getRoleName(data.user.role)}</p>
+                        </div>
+                    </div>
+                    <button onclick="replyTo(${data.user.id}, '${data.user.name}')" class="bg-purple-100 text-purple-600 px-4 py-2 rounded-lg hover:bg-purple-200">
+                        <i class="fas fa-reply mr-1"></i> Yanıtla
+                    </button>
+                </div>
+                
+                <div class="space-y-4 max-h-[50vh] overflow-y-auto mb-4" id="chatMessages">
+                    ${data.messages.map(msg => `
+                        <div class="chat-bubble p-3 ${msg.is_mine ? 'mine' : 'theirs'}">
+                            <p>${msg.content}</p>
+                            <p class="text-xs ${msg.is_mine ? 'text-purple-200' : 'text-gray-400'} mt-1">
+                                ${new Date(msg.created_at).toLocaleString('tr-TR')}
+                            </p>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div class="border-t pt-4">
+                    <div class="flex gap-2">
+                        <input type="text" id="quickReply" placeholder="Mesaj yazın..." 
+                            class="flex-1 border-2 border-gray-200 rounded-lg px-4 py-2 focus:border-purple-500 focus:outline-none"
+                            onkeypress="if(event.key==='Enter') sendQuickReply(${data.user.id})">
+                        <button onclick="sendQuickReply(${data.user.id})" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // Scroll to bottom
+            setTimeout(() => {
+                const chat = document.getElementById('chatMessages');
+                chat.scrollTop = chat.scrollHeight;
+            }, 100);
+        }
+
+        function getRoleName(role) {
+            const roles = {
+                'ogrenci': 'Öğrenci',
+                'ogretmen': 'Öğretmen',
+                'veli': 'Veli',
+                'admin': 'Admin'
+            };
+            return roles[role] || role;
+        }
+
+        async function sendQuickReply(receiverId) {
+            const content = document.getElementById('quickReply').value.trim();
+            if (!content) return;
+
+            try {
+                await fetch(`${API_BASE_URL}/messages/send`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        receiver_id: receiverId,
+                        content: content
+                    })
+                });
+
+                document.getElementById('quickReply').value = '';
+                openMessage(null, receiverId);
+            } catch (e) {
+                console.error(e);
+                alert('Mesaj gönderilemedi');
+            }
+        }
+
+        function replyTo(userId, userName) {
+            document.getElementById('receiverSelect').innerHTML = `<option value="${userId}">${userName}</option>`;
+            showComposeModal();
+        }
+
+        function showComposeModal() {
+            loadReceivers();
+            document.getElementById('composeModal').classList.remove('hidden');
+            document.getElementById('composeModal').classList.add('flex');
+        }
+
+        function closeComposeModal() {
+            document.getElementById('composeModal').classList.add('hidden');
+            document.getElementById('composeModal').classList.remove('flex');
+            document.getElementById('messageSubject').value = '';
+            document.getElementById('messageText').value = '';
+            document.getElementById('composeError').classList.add('hidden');
+        }
+
+        async function loadReceivers() {
+            const select = document.getElementById('receiverSelect');
+            let receivers = [];
+
+            try {
+                console.log('Loading receivers for role:', user.rol);
+
+                if (user.rol === 'ogrenci') {
+                    // Students: get all teachers
+                    const response = await fetch(`${API_BASE_URL}/teacher/all`, {
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    });
+                    console.log('Teacher/all response status:', response.status);
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('Teachers data:', data);
+                        // Response is an array directly
+                        receivers = Array.isArray(data) ? data : [];
+                    }
+                } else if (user.rol === 'ogretmen') {
+                    // Teachers: get their students
+                    const response = await fetch(`${API_BASE_URL}/teacher/students`, {
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    });
+                    console.log('Students response status:', response.status);
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('Students data:', data);
+                        receivers = Array.isArray(data) ? data : [];
+                    }
+                } else if (user.rol === 'veli') {
+                    // Parents: get their children's teachers (simplified: get all teachers)
+                    const response = await fetch(`${API_BASE_URL}/teacher/all`, {
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        receivers = Array.isArray(data) ? data : [];
+                    }
+                }
+
+                console.log('Final receivers:', receivers);
+
+                // Update dropdown
+                if (receivers.length > 0) {
+                    select.innerHTML = '<option value="">Seçin...</option>' +
+                        receivers.map(r => `<option value="${r.id}">${r.ad_soyad || r.email}</option>`).join('');
+                } else {
+                    select.innerHTML = '<option value="">Alıcı bulunamadı - Lütfen sayfayı yenileyin</option>';
+                }
+            } catch (e) {
+                console.error('loadReceivers error:', e);
+                select.innerHTML = '<option value="">Hata oluştu</option>';
+            }
+        }
+
+        async function sendMessage() {
+            const receiverId = document.getElementById('receiverSelect').value;
+            const subject = document.getElementById('messageSubject').value.trim();
+            const content = document.getElementById('messageText').value.trim();
+
+            if (!receiverId || !content) {
+                showComposeError('Alıcı ve mesaj içeriği gerekli');
+                return;
+            }
+
+            document.getElementById('sendBtn').disabled = true;
+            document.getElementById('sendBtn').innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Gönderiliyor...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/messages/send`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        receiver_id: parseInt(receiverId),
+                        subject: subject || null,
+                        content: content
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    closeComposeModal();
+                    loadMessages();
+                    alert('✅ Mesaj gönderildi!');
+                } else {
+                    showComposeError(data.detail || 'Mesaj gönderilemedi');
+                }
+            } catch (e) {
+                console.error(e);
+                showComposeError('Bir hata oluştu');
+            } finally {
+                document.getElementById('sendBtn').disabled = false;
+                document.getElementById('sendBtn').innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Gönder';
+            }
+        }
+
+        function showComposeError(msg) {
+            const el = document.getElementById('composeError');
+            el.textContent = msg;
+            el.classList.remove('hidden');
+        }
+
+        // Initialize
+        loadMessages();
+    </script>
+</body>
+
+</html>

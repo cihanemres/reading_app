@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hikâye Okuma - Okuma Geliştirme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/speech-practice.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .reading-text {
+            line-height: 2;
+            font-size: 18px;
+        }
+
+        .reading-text.size-small {
+            font-size: 16px;
+        }
+
+        .reading-text.size-medium {
+            font-size: 18px;
+        }
+
+        .reading-text.size-large {
+            font-size: 22px;
+        }
+
+        .reading-text.size-xlarge {
+            font-size: 26px;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="dashboard.html" class="text-purple-600 hover:text-purple-700 mr-4">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </a>
+                    <span class="text-xl font-bold text-gray-800">Hikâye Okuma</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <p class="text-sm font-semibold text-gray-800" id="userName">Yükleniyor...</p>
+                    </div>
+                    <button onclick="performLogout()" class="text-red-600 hover:text-red-700">
+                        <i class="fas fa-sign-out-alt text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Story Header -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+            <div class="flex items-start justify-between">
+                <div class="flex-1">
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2" id="storyTitle">Yükleniyor...</h1>
+                    <div class="flex items-center space-x-4 text-sm text-gray-600">
+                        <span><i class="fas fa-layer-group mr-1"></i><span id="storyGrade">-</span>. Sınıf</span>
+                        <span><i class="fas fa-file-word mr-1"></i><span id="wordCount">0</span> kelime</span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button id="audioBtn"
+                        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition hidden">
+                        <i class="fas fa-headphones mr-2"></i>Sesli Dinle
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reading Controls -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Timer Section -->
+                <div class="text-center">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Okuma Süresi</h3>
+                    <div class="bg-purple-50 rounded-lg p-6">
+                        <div class="text-5xl font-bold text-purple-600 mb-4" id="timer">00:00</div>
+                        <div class="flex justify-center space-x-3">
+                            <button id="startBtn"
+                                class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition">
+                                <i class="fas fa-play mr-2"></i>Başlat
+                            </button>
+                            <button id="stopBtn"
+                                class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition hidden">
+                                <i class="fas fa-stop mr-2"></i>Durdur
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Font Size Control -->
+                <div class="text-center">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Yazı Boyutu</h3>
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <div class="flex justify-center items-center space-x-4 mb-4">
+                            <span class="text-sm text-gray-600">Küçük</span>
+                            <input type="range" id="fontSizeSlider" min="1" max="4" value="2" class="w-48">
+                            <span class="text-sm text-gray-600">Büyük</span>
+                        </div>
+                        <div class="text-gray-600">
+                            <i class="fas fa-font mr-2"></i>
+                            <span id="fontSizeLabel">Orta</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Story Text -->
+        <div class="bg-white rounded-xl shadow-md p-8 mb-6">
+            <div id="storyText" class="reading-text size-medium text-gray-800 leading-relaxed">
+                <div class="text-center py-12">
+                    <i class="fas fa-spinner fa-spin text-4xl text-purple-600"></i>
+                    <p class="text-gray-600 mt-4">Hikâye yükleniyor...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Speech Practice Section -->
+        <div id="speechPracticeSection" class="speech-practice-container">
+            <h3 class="speech-practice-title">
+                <i class="fas fa-microphone"></i>
+                Sesli Okuma Pratiği
+            </h3>
+
+            <div id="browserWarning" class="browser-warning hidden">
+                <i class="fas fa-exclamation-triangle"></i>
+                Tarayıcınız sesli okuma özelliğini desteklemiyor. Lütfen Chrome veya Edge kullanın.
+            </div>
+
+            <button id="recordBtn" class="record-btn record-btn-start">
+                <i class="fas fa-microphone"></i>
+                <span>Sesli Okumaya Başla</span>
+            </button>
+
+            <div id="recordingIndicator" class="recording-indicator">
+                <div class="recording-dot"></div>
+                <span>Dinleniyor... Hikayeyi sesli okuyun</span>
+            </div>
+
+            <div id="liveTranscript" class="live-transcript hidden">
+                <span class="live-transcript-label">Algılanan metin:</span>
+                <div id="transcriptText" class="live-transcript-text">...</div>
+            </div>
+        </div>
+
+        <!-- Speech Results Panel -->
+        <div id="speechResultPanel" class="speech-result-panel">
+            <h3 class="result-panel-title">
+                <i class="fas fa-chart-bar"></i>
+                Okuma Sonuçları
+            </h3>
+            <div id="comparisonResults"></div>
+            <button id="tryAgainBtn" class="try-again-btn">
+                <i class="fas fa-redo"></i>
+                Tekrar Dene
+            </button>
+        </div>
+
+        <!-- Results Section (Hidden initially) -->
+        <div id="resultsSection" class="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl shadow-md p-8 hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
+                <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                Okuma Tamamlandı!
+            </h2>
+
+            <div class="grid md:grid-cols-3 gap-6 mb-6">
+                <div class="bg-white rounded-lg p-6 text-center">
+                    <i class="fas fa-clock text-3xl text-blue-600 mb-3"></i>
+                    <p class="text-gray-600 text-sm">Okuma Süresi</p>
+                    <p class="text-2xl font-bold text-gray-800" id="finalTime">-</p>
+                </div>
+
+                <div class="bg-white rounded-lg p-6 text-center">
+                    <i class="fas fa-file-word text-3xl text-purple-600 mb-3"></i>
+                    <p class="text-gray-600 text-sm">Kelime Sayısı</p>
+                    <p class="text-2xl font-bold text-gray-800" id="finalWords">-</p>
+                </div>
+
+                <div class="bg-white rounded-lg p-6 text-center">
+                    <i class="fas fa-tachometer-alt text-3xl text-green-600 mb-3"></i>
+                    <p class="text-gray-600 text-sm">Okuma Hızı</p>
+                    <p class="text-2xl font-bold text-gray-800" id="finalSpeed">-</p>
+                    <p class="text-xs text-gray-500">kelime/dakika</p>
+                </div>
+            </div>
+
+            <div class="flex justify-center space-x-4">
+                <button onclick="window.location.href='practice.html?id=' + storyId"
+                    class="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 transition">
+                    <i class="fas fa-redo mr-2"></i>Pratik Yap
+                </button>
+                <button onclick="window.location.href='quiz.html?id=' + storyId"
+                    class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition">
+                    <i class="fas fa-question-circle mr-2"></i>Sınavı Çöz
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/speech-recognition.js"></script>
+    <script>
+        // Check authentication
+        if (!checkAuth()) {
+            window.location.href = '../login.html';
+        }
+
+        const user = getCurrentUserInfo();
+        document.getElementById('userName').textContent = user.ad_soyad;
+
+        // Get story ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const storyId = urlParams.get('id');
+
+        if (!storyId) {
+            alert('Hikâye bulunamadı!');
+            window.location.href = 'dashboard.html';
+        }
+
+        let story = null;
+        let timerInterval = null;
+        let startTime = null;
+        let elapsedSeconds = 0;
+        let isPreReading = true;
+
+        // Load story
+        async function loadStory() {
+            try {
+                story = await API.getStory(storyId);
+
+                document.getElementById('storyTitle').textContent = story.baslik;
+                document.getElementById('storyGrade').textContent = story.sinif_duzeyi;
+                document.getElementById('wordCount').textContent = story.kelime_sayisi || 0;
+                document.getElementById('storyText').innerHTML = story.metin.replace(/\n/g, '<br><br>');
+
+                // Show audio button if available
+                if (story.ses_dosyasi) {
+                    document.getElementById('audioBtn').classList.remove('hidden');
+                    document.getElementById('audioBtn').onclick = () => {
+                        window.location.href = `audio-player.html?id=${storyId}`;
+                    };
+                }
+
+                // Check if pre-reading already exists
+                const progress = await API.getProgress(storyId);
+                if (progress.improvement && progress.improvement.has_data) {
+                    isPreReading = false;
+                }
+            } catch (error) {
+                console.error('Error loading story:', error);
+                alert('Hikâye yüklenirken hata oluştu!');
+                window.location.href = 'dashboard.html';
+            }
+        }
+
+        // Timer functions
+        function updateTimer() {
+            const minutes = Math.floor(elapsedSeconds / 60);
+            const seconds = elapsedSeconds % 60;
+            document.getElementById('timer').textContent =
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        document.getElementById('startBtn').addEventListener('click', () => {
+            startTime = Date.now() - (elapsedSeconds * 1000);
+            timerInterval = setInterval(() => {
+                elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+                updateTimer();
+            }, 1000);
+
+            document.getElementById('startBtn').classList.add('hidden');
+            document.getElementById('stopBtn').classList.remove('hidden');
+        });
+
+        document.getElementById('stopBtn').addEventListener('click', async () => {
+            clearInterval(timerInterval);
+
+            document.getElementById('stopBtn').classList.add('hidden');
+            document.getElementById('startBtn').classList.remove('hidden');
+
+            // Show results
+            await saveReading();
+        });
+
+        // Font size control
+        const fontSizes = ['size-small', 'size-medium', 'size-large', 'size-xlarge'];
+        const fontLabels = ['Küçük', 'Orta', 'Büyük', 'Çok Büyük'];
+
+        document.getElementById('fontSizeSlider').addEventListener('input', (e) => {
+            const value = parseInt(e.target.value) - 1;
+            const textElement = document.getElementById('storyText');
+
+            // Remove all size classes
+            fontSizes.forEach(size => textElement.classList.remove(size));
+
+            // Add selected size
+            textElement.classList.add(fontSizes[value]);
+            document.getElementById('fontSizeLabel').textContent = fontLabels[value];
+        });
+
+        // Save reading
+        async function saveReading() {
+            const readingData = {
+                story_id: parseInt(storyId),
+                okuma_suresi: elapsedSeconds,
+                kelime_sayisi: story.kelime_sayisi || 0
+            };
+
+            try {
+                let result;
+                if (isPreReading) {
+                    result = await API.savePreReading(readingData);
+                } else {
+                    result = await API.savePractice(readingData);
+                }
+
+                // Calculate speed
+                const speed = result.okuma_hizi || 0;
+
+                // Show results
+                document.getElementById('finalTime').textContent =
+                    `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, '0')}`;
+                document.getElementById('finalWords').textContent = story.kelime_sayisi || 0;
+                document.getElementById('finalSpeed').textContent = Math.round(speed);
+
+                document.getElementById('resultsSection').classList.remove('hidden');
+
+                // Scroll to results
+                document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+            } catch (error) {
+                console.error('Error saving reading:', error);
+                alert('Okuma kaydedilirken hata oluştu!');
+            }
+        }
+
+        // Initialize
+        loadStory();
+
+        // Speech Recognition Setup
+        let speechRecognition = null;
+
+        function initSpeechRecognition() {
+            // Check browser support
+            if (!SpeechRecognitionPractice.isSupported()) {
+                document.getElementById('browserWarning').classList.remove('hidden');
+                document.getElementById('recordBtn').disabled = true;
+                return;
+            }
+
+            speechRecognition = new SpeechRecognitionPractice();
+
+            // Handle live results
+            speechRecognition.onResult((result) => {
+                document.getElementById('transcriptText').textContent = result.combined || '...';
+            });
+
+            // Handle errors
+            speechRecognition.onError((error) => {
+                console.error('Speech recognition error:', error);
+                if (error === 'not-allowed') {
+                    alert('Mikrofon erişimi reddedildi. Lütfen tarayıcı ayarlarından mikrofon iznini verin.');
+                }
+                stopRecording();
+            });
+
+            // Handle end
+            speechRecognition.onEnd((finalTranscript) => {
+                showResults(finalTranscript);
+            });
+        }
+
+        // Record button handlers
+        const recordBtn = document.getElementById('recordBtn');
+        let isRecordingActive = false;
+
+        recordBtn.addEventListener('click', async () => {
+            if (!isRecordingActive) {
+                await startRecording();
+            } else {
+                stopRecording();
+            }
+        });
+
+        async function startRecording() {
+            if (!speechRecognition) {
+                initSpeechRecognition();
+            }
+
+            try {
+                await speechRecognition.start();
+                isRecordingActive = true;
+
+                // Update UI
+                recordBtn.classList.remove('record-btn-start');
+                recordBtn.classList.add('record-btn-stop');
+                recordBtn.innerHTML = '<i class="fas fa-stop"></i><span>Kaydı Durdur</span>';
+
+                document.getElementById('recordingIndicator').classList.add('active');
+                document.getElementById('liveTranscript').classList.remove('hidden');
+                document.getElementById('transcriptText').textContent = 'Dinleniyor...';
+                document.getElementById('speechResultPanel').classList.remove('active');
+            } catch (error) {
+                console.error('Failed to start recording:', error);
+                alert('Kayıt başlatılamadı: ' + error.message);
+            }
+        }
+
+        function stopRecording() {
+            if (speechRecognition) {
+                speechRecognition.stop();
+            }
+            isRecordingActive = false;
+
+            // Update UI
+            recordBtn.classList.remove('record-btn-stop');
+            recordBtn.classList.add('record-btn-start');
+            recordBtn.innerHTML = '<i class="fas fa-microphone"></i><span>Sesli Okumaya Başla</span>';
+
+            document.getElementById('recordingIndicator').classList.remove('active');
+        }
+
+        async function showResults(spokenText) {
+            if (!story || !spokenText) {
+                document.getElementById('liveTranscript').classList.add('hidden');
+                return;
+            }
+
+            // Compare texts
+            const results = TextComparator.compare(story.metin, spokenText);
+
+            // Get incorrect words list
+            const incorrectWords = results.wordResults
+                .filter(r => r.status === 'incorrect')
+                .map(r => r.original);
+
+            // Save to API
+            try {
+                const savedRecord = await API.saveSpeechPractice({
+                    story_id: parseInt(storyId),
+                    dogru_kelime: results.correctCount,
+                    hatali_kelime: results.incorrectCount,
+                    atlanan_kelime: results.missedCount,
+                    toplam_kelime: results.originalWords.length,
+                    dogruluk_orani: results.accuracy,
+                    hatali_kelimeler: incorrectWords,
+                    algilanan_metin: spokenText
+                });
+
+                // Add attempt number to results display
+                const attemptInfo = `<div class="attempt-info" style="margin-bottom: 1rem; padding: 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 0.5rem; text-align: center; font-weight: 600;">
+                    <i class="fas fa-flag-checkered"></i> Deneme #${savedRecord.deneme_no}
+                </div>`;
+
+                // Generate and show HTML
+                const html = attemptInfo + TextComparator.generateResultHTML(results);
+                document.getElementById('comparisonResults').innerHTML = html;
+
+                // Load and show history
+                await loadSpeechHistory();
+            } catch (error) {
+                console.error('Failed to save speech practice:', error);
+                // Still show results even if save fails
+                const html = TextComparator.generateResultHTML(results);
+                document.getElementById('comparisonResults').innerHTML = html;
+            }
+
+            document.getElementById('speechResultPanel').classList.add('active');
+
+            // Scroll to results
+            document.getElementById('speechResultPanel').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Load speech practice history
+        async function loadSpeechHistory() {
+            try {
+                const history = await API.getSpeechHistory(storyId);
+                if (history && history.length > 0) {
+                    let historyHTML = `
+                        <div class="speech-history" style="margin-top: 1.5rem; padding: 1rem; background: #f7fafc; border-radius: 0.75rem;">
+                            <h4 style="margin-bottom: 1rem; color: #4a5568; font-weight: 600;">
+                                <i class="fas fa-history"></i> Okuma Geçmişi
+                            </h4>
+                            <div style="display: grid; gap: 0.5rem;">
+                    `;
+
+                    history.forEach(record => {
+                        const date = new Date(record.created_at).toLocaleDateString('tr-TR');
+                        historyHTML += `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: white; border-radius: 0.5rem; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                                <span style="font-weight: 500;">Deneme #${record.deneme_no}</span>
+                                <span style="color: ${record.dogruluk_orani >= 80 ? '#38a169' : record.dogruluk_orani >= 60 ? '#d69e2e' : '#e53e3e'}; font-weight: 600;">%${record.dogruluk_orani}</span>
+                                <span style="color: #718096; font-size: 0.875rem;">${date}</span>
+                            </div>
+                        `;
+                    });
+
+                    historyHTML += '</div></div>';
+                    document.getElementById('comparisonResults').innerHTML += historyHTML;
+                }
+            } catch (error) {
+                console.error('Failed to load speech history:', error);
+            }
+        }
+
+        // Try again button
+        document.getElementById('tryAgainBtn').addEventListener('click', () => {
+            document.getElementById('speechResultPanel').classList.remove('active');
+            document.getElementById('liveTranscript').classList.add('hidden');
+            document.getElementById('transcriptText').textContent = '...';
+        });
+
+        // Initialize speech recognition on page load
+        initSpeechRecognition();
+    </script>
+</body>
+
+</html>

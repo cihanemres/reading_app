@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kullanıcı Yönetimi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="dashboard.html" class="text-purple-600 hover:text-purple-700 mr-4">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </a>
+                    <span class="text-xl font-bold text-gray-800">Kullanıcı Yönetimi</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <p class="text-sm font-semibold text-gray-800" id="userName">Yükleniyor...</p>
+                    <button onclick="window.location.href='../profile.html'"
+                        class="text-purple-600 hover:text-purple-700">
+                        <i class="fas fa-user-cog text-xl"></i>
+                    </button>
+                    <button onclick="performLogout()" class="text-red-600 hover:text-red-700">
+                        <i class="fas fa-sign-out-alt text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">Kullanıcı Yönetimi</h1>
+            <button onclick="showAddModal()" class="gradient-bg text-white px-6 py-3 rounded-lg hover:opacity-90">
+                <i class="fas fa-user-plus mr-2"></i>Yeni Kullanıcı
+            </button>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md p-4 mb-6">
+            <div class="flex items-center space-x-4">
+                <label class="font-semibold">Rol:</label>
+                <button onclick="filterUsers(null)"
+                    class="filter-btn px-4 py-2 rounded-lg bg-purple-600 text-white">Tümü</button>
+                <button onclick="filterUsers('ogrenci')"
+                    class="filter-btn px-4 py-2 rounded-lg bg-gray-200">Öğrenciler</button>
+                <button onclick="filterUsers('ogretmen')"
+                    class="filter-btn px-4 py-2 rounded-lg bg-gray-200">Öğretmenler</button>
+                <button onclick="filterUsers('veli')"
+                    class="filter-btn px-4 py-2 rounded-lg bg-gray-200">Veliler</button>
+            </div>
+        </div>
+
+        <div id="usersContainer" class="space-y-4">
+            <div class="text-center py-12">
+                <i class="fas fa-spinner fa-spin text-4xl text-purple-600"></i>
+                <p class="mt-4">Yükleniyor...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="userModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl max-w-2xl w-full mx-4">
+            <div class="gradient-bg text-white p-6 rounded-t-xl">
+                <h2 class="text-2xl font-bold" id="modalTitle">Yeni Kullanıcı</h2>
+            </div>
+            <form id="userForm" class="p-6 space-y-4">
+                <input type="hidden" id="userId">
+                <div>
+                    <label class="block font-semibold mb-2">Ad Soyad *</label>
+                    <input type="text" id="formName" required class="w-full border-2 rounded-lg p-3">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-2">E-posta *</label>
+                    <input type="email" id="formEmail" required class="w-full border-2 rounded-lg p-3">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-2"><span id="passwordLabel">Şifre *</span></label>
+                    <input type="password" id="formPassword" class="w-full border-2 rounded-lg p-3">
+                    <p class="text-xs text-gray-500 mt-1 hidden" id="passwordHint">Boş bırakırsanız şifre değişmez</p>
+                </div>
+                <div>
+                    <label class="block font-semibold mb-2">Rol *</label>
+                    <select id="formRole" required onchange="toggleFields()" class="w-full border-2 rounded-lg p-3">
+                        <option value="">Seçiniz</option>
+                        <option value="ogrenci">Öğrenci</option>
+                        <option value="ogretmen">Öğretmen</option>
+                        <option value="veli">Veli</option>
+                    </select>
+                </div>
+                <div id="gradeField" class="hidden">
+                    <label class="block font-semibold mb-2">Sınıf *</label>
+                    <select id="formGrade" class="w-full border-2 rounded-lg p-3">
+                        <option value="">Seçiniz</option>
+                        <option value="2">2. Sınıf</option>
+                        <option value="3">3. Sınıf</option>
+                        <option value="4">4. Sınıf</option>
+                    </select>
+                </div>
+                <div id="studentField" class="hidden">
+                    <label class="block font-semibold mb-2">Öğrenci Seç (Veli için) *</label>
+                    <select id="formStudent" class="w-full border-2 rounded-lg p-3">
+                        <option value="">Seçiniz</option>
+                    </select>
+                </div>
+                <div class="flex space-x-4">
+                    <button type="button" onclick="closeModal()"
+                        class="flex-1 bg-gray-300 py-3 rounded-lg">İptal</button>
+                    <button type="submit" class="flex-1 gradient-bg text-white py-3 rounded-lg">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        if (!checkAuth()) window.location.href = '../login.html';
+        const user = getCurrentUserInfo();
+        if (user.rol !== 'yonetici') {
+            alert('Erişim yetkiniz yok!');
+            window.location.href = '../login.html';
+        }
+        document.getElementById('userName').textContent = user.ad_soyad;
+
+        let allUsers = [];
+        let currentFilter = null;
+        let editMode = false;
+
+        async function loadUsers() {
+            try {
+                allUsers = await API.getUsers();
+                displayUsers();
+                updateStudentSelect();
+            } catch (error) {
+                console.error(error);
+                document.getElementById('usersContainer').innerHTML = '<div class="text-center py-12 text-red-600">Hata!</div>';
+            }
+        }
+
+        function updateStudentSelect() {
+            const studentSelect = document.getElementById('formStudent');
+            const students = allUsers.filter(u => u.rol === 'ogrenci');
+            studentSelect.innerHTML = '<option value="">Seçiniz</option>' +
+                students.map(s => `<option value="${s.id}">${s.ad_soyad} (${s.sinif_duzeyi}. Sınıf)</option>`).join('');
+        }
+
+        function displayUsers() {
+            const container = document.getElementById('usersContainer');
+            let filtered = currentFilter ? allUsers.filter(u => u.rol === currentFilter) : allUsers;
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="text-center py-12">Kullanıcı yok</div>';
+                return;
+            }
+
+            const roleLabels = { 'ogrenci': 'Öğrenci', 'ogretmen': 'Öğretmen', 'veli': 'Veli', 'yonetici': 'Yönetici' };
+            const roleColors = { 'ogrenci': 'purple', 'ogretmen': 'blue', 'veli': 'green', 'yonetici': 'red' };
+
+            container.innerHTML = filtered.map(u => `
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-4">
+                            <div class="bg-${roleColors[u.rol]}-100 w-12 h-12 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user text-${roleColors[u.rol]}-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold">${u.ad_soyad}</h3>
+                                <p class="text-sm text-gray-600">${u.email}</p>
+                                <span class="text-xs bg-${roleColors[u.rol]}-100 text-${roleColors[u.rol]}-800 px-2 py-1 rounded-full">${roleLabels[u.rol]}</span>
+                                ${u.sinif_duzeyi ? `<span class="text-xs bg-gray-100 px-2 py-1 rounded-full ml-2">${u.sinif_duzeyi}. Sınıf</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="editUser(${u.id})" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="deleteUser(${u.id})" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterUsers(role) {
+            currentFilter = role;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-purple-600', 'text-white');
+                btn.classList.add('bg-gray-200');
+            });
+            event.target.classList.remove('bg-gray-200');
+            event.target.classList.add('bg-purple-600', 'text-white');
+            displayUsers();
+        }
+
+        function showAddModal() {
+            editMode = false;
+            document.getElementById('modalTitle').textContent = 'Yeni Kullanıcı';
+            document.getElementById('passwordLabel').textContent = 'Şifre *';
+            document.getElementById('passwordHint').classList.add('hidden');
+            document.getElementById('formPassword').required = true;
+            document.getElementById('userForm').reset();
+            document.getElementById('userId').value = '';
+            document.getElementById('gradeField').classList.add('hidden');
+            document.getElementById('studentField').classList.add('hidden');
+            document.getElementById('userModal').classList.remove('hidden');
+            document.getElementById('userModal').classList.add('flex');
+        }
+
+        function editUser(id) {
+            editMode = true;
+            const userToEdit = allUsers.find(u => u.id === id);
+            if (!userToEdit) return;
+
+            document.getElementById('modalTitle').textContent = 'Kullanıcı Düzenle';
+            document.getElementById('passwordLabel').textContent = 'Yeni Şifre (Opsiyonel)';
+            document.getElementById('passwordHint').classList.remove('hidden');
+            document.getElementById('formPassword').required = false;
+
+            document.getElementById('userId').value = userToEdit.id;
+            document.getElementById('formName').value = userToEdit.ad_soyad;
+            document.getElementById('formEmail').value = userToEdit.email;
+            document.getElementById('formPassword').value = '';
+            document.getElementById('formRole').value = userToEdit.rol;
+
+            if (userToEdit.sinif_duzeyi) {
+                document.getElementById('formGrade').value = userToEdit.sinif_duzeyi;
+            }
+
+            toggleFields();
+            document.getElementById('userModal').classList.remove('hidden');
+            document.getElementById('userModal').classList.add('flex');
+        }
+
+        function toggleFields() {
+            const role = document.getElementById('formRole').value;
+            const gradeField = document.getElementById('gradeField');
+            const studentField = document.getElementById('studentField');
+            const gradeSelect = document.getElementById('formGrade');
+            const studentSelect = document.getElementById('formStudent');
+
+            if (role === 'ogrenci') {
+                gradeField.classList.remove('hidden');
+                studentField.classList.add('hidden');
+                gradeSelect.required = true;
+                studentSelect.required = false;
+            } else if (role === 'veli') {
+                gradeField.classList.add('hidden');
+                studentField.classList.remove('hidden');
+                gradeSelect.required = false;
+                studentSelect.required = !editMode; // Düzenleme modunda zorunlu değil
+            } else {
+                gradeField.classList.add('hidden');
+                studentField.classList.add('hidden');
+                gradeSelect.required = false;
+                studentSelect.required = false;
+            }
+        }
+
+        async function deleteUser(id) {
+            if (!confirm('Silmek istediğinizden emin misiniz?')) return;
+            try {
+                await API.deleteUser(id);
+                alert('Silindi!');
+                loadUsers();
+            } catch (error) {
+                console.error(error);
+                alert('Hata!');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('userModal').classList.add('hidden');
+            document.getElementById('userModal').classList.remove('flex');
+        }
+
+        document.getElementById('userForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userId = document.getElementById('userId').value;
+            const role = document.getElementById('formRole').value;
+            const data = {
+                ad_soyad: document.getElementById('formName').value,
+                email: document.getElementById('formEmail').value,
+                rol: role
+            };
+
+            const password = document.getElementById('formPassword').value;
+            if (password) {
+                data.password = password;
+            }
+
+            if (role === 'ogrenci') {
+                data.sinif_duzeyi = parseInt(document.getElementById('formGrade').value);
+            } else if (role === 'veli' && !editMode) {
+                data.parent_id = parseInt(document.getElementById('formStudent').value);
+            }
+
+            try {
+                if (userId) {
+                    await API.updateUser(userId, data);
+                    alert('Kullanıcı güncellendi!');
+                } else {
+                    await API.createUser(data);
+                    alert('Kullanıcı eklendi!');
+                }
+                closeModal();
+                loadUsers();
+            } catch (error) {
+                console.error(error);
+                alert('Hata oluştu!');
+            }
+        });
+
+        loadUsers();
+    </script>
+</body>
+
+</html>

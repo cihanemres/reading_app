@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kayıt Ol - Okuma Geliştirme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full">
+            <!-- Logo and Title -->
+            <div class="text-center mb-8">
+                <a href="index.html" class="inline-block">
+                    <i class="fas fa-book-reader text-6xl text-purple-600 mb-4"></i>
+                </a>
+                <h2 class="text-3xl font-bold text-gray-800">Kayıt Ol</h2>
+                <p class="text-gray-600 mt-2">Yeni hesap oluşturun</p>
+            </div>
+
+            <!-- Register Form -->
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <form id="registerForm" class="space-y-6">
+                    <!-- Full Name -->
+                    <div>
+                        <label for="ad_soyad" class="block text-sm font-medium text-gray-700 mb-2">
+                            Ad Soyad
+                        </label>
+                        <input type="text" id="ad_soyad" name="ad_soyad" required
+                            class="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                            placeholder="Adınız Soyadınız">
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                            E-posta Adresi
+                        </label>
+                        <input type="email" id="email" name="email" required
+                            class="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                            placeholder="ornek@email.com">
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                            Şifre
+                        </label>
+                        <input type="password" id="password" name="password" required minlength="6"
+                            class="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                            placeholder="En az 6 karakter">
+                    </div>
+
+                    <!-- Role Selection -->
+                    <div>
+                        <label for="rol" class="block text-sm font-medium text-gray-700 mb-2">
+                            Rol
+                        </label>
+                        <select id="rol" name="rol" required
+                            class="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent">
+                            <option value="">Seçiniz...</option>
+                            <option value="ogrenci">Öğrenci</option>
+                            <option value="ogretmen">Öğretmen</option>
+                            <option value="veli">Veli</option>
+                        </select>
+                    </div>
+
+                    <!-- Grade Level (for students only) -->
+                    <div id="gradeLevelDiv" class="hidden">
+                        <label for="sinif_duzeyi" class="block text-sm font-medium text-gray-700 mb-2">
+                            Sınıf Düzeyi
+                        </label>
+                        <select id="sinif_duzeyi" name="sinif_duzeyi"
+                            class="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent">
+                            <option value="">Seçiniz...</option>
+                            <option value="2">2. Sınıf</option>
+                            <option value="3">3. Sınıf</option>
+                            <option value="4">4. Sınıf</option>
+                        </select>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div id="errorMessage"
+                        class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        <span id="errorText"></span>
+                    </div>
+
+                    <!-- Success Message -->
+                    <div id="successMessage"
+                        class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <span id="successText"></span>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit"
+                        class="w-full gradient-bg text-white py-3 rounded-lg font-semibold hover:opacity-90 transition flex items-center justify-center">
+                        <span id="registerButtonText">Kayıt Ol</span>
+                        <i id="registerSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                    </button>
+                </form>
+
+                <!-- Login Link -->
+                <div class="mt-6 text-center">
+                    <p class="text-gray-600">
+                        Zaten hesabınız var mı?
+                        <a href="login.html" class="text-purple-600 font-semibold hover:text-purple-700">
+                            Giriş Yap
+                        </a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Back to Home -->
+            <div class="mt-6 text-center">
+                <a href="index.html" class="text-gray-600 hover:text-purple-600 transition">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Ana Sayfaya Dön
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        // Show/hide grade level based on role
+        document.getElementById('rol').addEventListener('change', (e) => {
+            const gradeLevelDiv = document.getElementById('gradeLevelDiv');
+            const sinifDuzeyi = document.getElementById('sinif_duzeyi');
+
+            if (e.target.value === 'ogrenci') {
+                gradeLevelDiv.classList.remove('hidden');
+                sinifDuzeyi.required = true;
+            } else {
+                gradeLevelDiv.classList.add('hidden');
+                sinifDuzeyi.required = false;
+                sinifDuzeyi.value = '';
+            }
+        });
+
+        // Handle form submission
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                ad_soyad: document.getElementById('ad_soyad').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                rol: document.getElementById('rol').value
+            };
+
+            // Add grade level if student
+            if (formData.rol === 'ogrenci') {
+                const sinifDuzeyi = document.getElementById('sinif_duzeyi').value;
+                if (!sinifDuzeyi) {
+                    showError('Lütfen sınıf düzeyini seçiniz.');
+                    return;
+                }
+                formData.sinif_duzeyi = parseInt(sinifDuzeyi);
+            }
+
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            const errorText = document.getElementById('errorText');
+            const successText = document.getElementById('successText');
+            const registerButtonText = document.getElementById('registerButtonText');
+            const registerSpinner = document.getElementById('registerSpinner');
+
+            // Hide messages
+            errorMessage.classList.add('hidden');
+            successMessage.classList.add('hidden');
+
+            // Show loading
+            registerButtonText.textContent = 'Kayıt yapılıyor...';
+            registerSpinner.classList.remove('hidden');
+
+            try {
+                const data = await API.register(formData);
+
+                if (data.success) {
+                    // Show success message
+                    successText.textContent = data.message || 'Kayıt başarılı! Yönetici onayı bekleniyor...';
+                    successMessage.classList.remove('hidden');
+
+                    // Redirect to login
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                }
+            } catch (error) {
+                errorText.textContent = error.message;
+                errorMessage.classList.remove('hidden');
+            } finally {
+                // Reset button
+                registerButtonText.textContent = 'Kayıt Ol';
+                registerSpinner.classList.add('hidden');
+            }
+        });
+
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            errorText.textContent = message;
+            errorMessage.classList.remove('hidden');
+        }
+    </script>
+</body>
+
+</html>

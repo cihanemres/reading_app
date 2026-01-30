@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Yönetimi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="story-management.html" class="text-purple-600 hover:text-purple-700 mr-4">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </a>
+                    <span class="text-xl font-bold text-gray-800">Quiz Soruları</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <p class="text-sm font-semibold text-gray-800" id="userName">Yükleniyor...</p>
+                    <button onclick="performLogout()" class="text-red-600 hover:text-red-700">
+                        <i class="fas fa-sign-out-alt text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-2" id="storyTitle">Yükleniyor...</h2>
+            <p class="text-gray-600">Bu hikaye için quiz soruları ekleyin veya düzenleyin</p>
+        </div>
+
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold">Sorular (4 adet olmalı)</h3>
+            <button onclick="showAddModal()" class="gradient-bg text-white px-6 py-3 rounded-lg hover:opacity-90">
+                <i class="fas fa-plus mr-2"></i>Yeni Soru
+            </button>
+        </div>
+
+        <div id="questionsContainer" class="space-y-4">
+            <div class="text-center py-12">
+                <i class="fas fa-spinner fa-spin text-4xl text-purple-600"></i>
+                <p class="mt-4">Yükleniyor...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="questionModal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 overflow-y-auto">
+        <div class="bg-white rounded-xl max-w-3xl w-full mx-4 my-8">
+            <div class="gradient-bg text-white p-6 rounded-t-xl">
+                <h2 class="text-2xl font-bold" id="modalTitle">Yeni Soru</h2>
+            </div>
+            <form id="questionForm" class="p-6 space-y-4">
+                <input type="hidden" id="questionId">
+                <div>
+                    <label class="block font-semibold mb-2">Soru Metni</label>
+                    <textarea id="questionText" rows="3" required class="w-full border-2 rounded-lg p-3"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-semibold mb-2">A Şıkkı</label>
+                        <input type="text" id="optionA" required class="w-full border-2 rounded-lg p-3">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-2">B Şıkkı</label>
+                        <input type="text" id="optionB" required class="w-full border-2 rounded-lg p-3">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-2">C Şıkkı</label>
+                        <input type="text" id="optionC" required class="w-full border-2 rounded-lg p-3">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-2">D Şıkkı</label>
+                        <input type="text" id="optionD" required class="w-full border-2 rounded-lg p-3">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold mb-2">Doğru Cevap</label>
+                    <select id="correctAnswer" required class="w-full border-2 rounded-lg p-3">
+                        <option value="">Seçiniz</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closeModal()" class="px-6 py-3 bg-gray-300 rounded-lg">İptal</button>
+                    <button type="submit" class="px-6 py-3 gradient-bg text-white rounded-lg">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl max-w-md w-full mx-4 p-6">
+            <h3 class="text-xl font-bold mb-4">Soruyu Sil</h3>
+            <p class="mb-6">Silmek istediğinizden emin misiniz?</p>
+            <div class="flex justify-end space-x-4">
+                <button onclick="closeDeleteModal()" class="px-6 py-3 bg-gray-300 rounded-lg">İptal</button>
+                <button onclick="confirmDelete()" class="px-6 py-3 bg-red-600 text-white rounded-lg">Sil</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        if (!checkAuth()) window.location.href = '../login.html';
+        const user = getCurrentUserInfo();
+        if (user.rol !== 'yonetici' && user.rol !== 'ogretmen') {
+            alert('Erişim yetkiniz yok!');
+            window.location.href = '../login.html';
+        }
+        document.getElementById('userName').textContent = user.ad_soyad;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const storyId = urlParams.get('story_id');
+
+        if (!storyId) {
+            alert('Hikaye ID bulunamadı!');
+            window.location.href = 'story-management.html';
+        }
+
+        let allQuestions = [];
+        let questionToDelete = null;
+
+        async function loadStory() {
+            try {
+                const story = await API.getStory(storyId);
+                document.getElementById('storyTitle').textContent = story.baslik;
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        async function loadQuestions() {
+            try {
+                const response = await fetch(`https://okuma-backend.onrender.com/api/stories/${storyId}/quiz`, {
+                    headers: { 'Authorization': `Bearer ${getAuthToken()}` }
+                });
+                allQuestions = await response.json();
+                displayQuestions();
+            } catch (error) {
+                console.error(error);
+                document.getElementById('questionsContainer').innerHTML = '<div class="text-center py-12 text-red-600">Hata!</div>';
+            }
+        }
+
+        function displayQuestions() {
+            const container = document.getElementById('questionsContainer');
+
+            if (allQuestions.length === 0) {
+                container.innerHTML = '<div class="text-center py-12"><p class="text-gray-600">Henüz soru eklenmemiş. En az 4 soru ekleyin.</p></div>';
+                return;
+            }
+
+            container.innerHTML = allQuestions.map((q, index) => `
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h4 class="font-bold text-lg mb-2">Soru ${index + 1}</h4>
+                            <p class="text-gray-700 mb-3">${q.question_text}</p>
+                            <div class="grid grid-cols-2 gap-2 text-sm">
+                                <div class="p-2 bg-gray-50 rounded ${q.correct_answer === 'A' ? 'border-2 border-green-500' : ''}">
+                                    <span class="font-semibold">A:</span> ${q.option_a}
+                                </div>
+                                <div class="p-2 bg-gray-50 rounded ${q.correct_answer === 'B' ? 'border-2 border-green-500' : ''}">
+                                    <span class="font-semibold">B:</span> ${q.option_b}
+                                </div>
+                                <div class="p-2 bg-gray-50 rounded ${q.correct_answer === 'C' ? 'border-2 border-green-500' : ''}">
+                                    <span class="font-semibold">C:</span> ${q.option_c}
+                                </div>
+                                <div class="p-2 bg-gray-50 rounded ${q.correct_answer === 'D' ? 'border-2 border-green-500' : ''}">
+                                    <span class="font-semibold">D:</span> ${q.option_d}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col space-y-2 ml-4">
+                            <button onclick="editQuestion(${q.id})" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
+                                <i class="fas fa-edit mr-2"></i>Düzenle
+                            </button>
+                            <button onclick="showDeleteModal(${q.id})" class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm">
+                                <i class="fas fa-trash mr-2"></i>Sil
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showAddModal() {
+            if (allQuestions.length >= 4) {
+                alert('Maksimum 4 soru ekleyebilirsiniz!');
+                return;
+            }
+            document.getElementById('modalTitle').textContent = 'Yeni Soru';
+            document.getElementById('questionForm').reset();
+            document.getElementById('questionId').value = '';
+            document.getElementById('questionModal').classList.remove('hidden');
+            document.getElementById('questionModal').classList.add('flex');
+        }
+
+        async function editQuestion(id) {
+            const question = allQuestions.find(q => q.id === id);
+            if (!question) return;
+            document.getElementById('modalTitle').textContent = 'Soruyu Düzenle';
+            document.getElementById('questionId').value = question.id;
+            document.getElementById('questionText').value = question.question_text;
+            document.getElementById('optionA').value = question.option_a;
+            document.getElementById('optionB').value = question.option_b;
+            document.getElementById('optionC').value = question.option_c;
+            document.getElementById('optionD').value = question.option_d;
+            document.getElementById('correctAnswer').value = question.correct_answer;
+            document.getElementById('questionModal').classList.remove('hidden');
+            document.getElementById('questionModal').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('questionModal').classList.add('hidden');
+            document.getElementById('questionModal').classList.remove('flex');
+        }
+
+        function showDeleteModal(id) {
+            questionToDelete = id;
+            document.getElementById('deleteModal').classList.remove('hidden');
+            document.getElementById('deleteModal').classList.add('flex');
+        }
+
+        function closeDeleteModal() {
+            questionToDelete = null;
+            document.getElementById('deleteModal').classList.add('hidden');
+            document.getElementById('deleteModal').classList.remove('flex');
+        }
+
+        async function confirmDelete() {
+            if (!questionToDelete) return;
+            try {
+                await fetch(`https://okuma-backend.onrender.com/api/stories/${storyId}/quiz/${questionToDelete}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${getAuthToken()}` }
+                });
+                alert('Silindi!');
+                closeDeleteModal();
+                loadQuestions();
+            } catch (error) {
+                console.error(error);
+                alert('Hata!');
+            }
+        }
+
+        document.getElementById('questionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const questionId = document.getElementById('questionId').value;
+            const data = {
+                question_text: document.getElementById('questionText').value,
+                option_a: document.getElementById('optionA').value,
+                option_b: document.getElementById('optionB').value,
+                option_c: document.getElementById('optionC').value,
+                option_d: document.getElementById('optionD').value,
+                correct_answer: document.getElementById('correctAnswer').value
+            };
+
+            try {
+                if (questionId) {
+                    await fetch(`https://okuma-backend.onrender.com/api/stories/${storyId}/quiz/${questionId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${getAuthToken()}`
+                        },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    await fetch(`https://okuma-backend.onrender.com/api/stories/${storyId}/quiz`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${getAuthToken()}`
+                        },
+                        body: JSON.stringify(data)
+                    });
+                }
+                alert('Kaydedildi!');
+                closeModal();
+                loadQuestions();
+            } catch (error) {
+                console.error(error);
+                alert('Hata!');
+            }
+        });
+
+        loadStory();
+        loadQuestions();
+    </script>
+</body>
+
+</html>
+

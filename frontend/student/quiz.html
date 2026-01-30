@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sınav - Okuma Geliştirme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/theme.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .option-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .option-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .option-card.selected {
+            border-color: #8B5CF6;
+            background: linear-gradient(135deg, #EDE9FE 0%, #F5F3FF 100%);
+            transform: scale(1.02);
+        }
+
+        .option-card.correct {
+            border-color: #10B981;
+            background: linear-gradient(135deg, #D1FAE5 0%, #ECFDF5 100%);
+        }
+
+        .option-card.wrong {
+            border-color: #EF4444;
+            background: linear-gradient(135deg, #FEE2E2 0%, #FEF2F2 100%);
+        }
+
+        /* Timer animation */
+        .timer-pulse {
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        /* Score celebration */
+        .celebrate {
+            animation: celebrate 0.6s ease-out;
+        }
+
+        @keyframes celebrate {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Confetti */
+        .confetti {
+            position: fixed;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Question transition */
+        .question-enter {
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="dashboard.html" class="text-purple-600 hover:text-purple-700 mr-4">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </a>
+                    <span class="text-xl font-bold text-gray-800">Anlama Sınavı</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- Timer -->
+                    <div id="timerDisplay" class="bg-purple-100 px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-clock text-purple-600 mr-2"></i>
+                        <span id="timerText" class="font-bold text-purple-600">00:00</span>
+                    </div>
+                    <p class="text-sm font-semibold text-gray-800" id="userName">...</p>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Left: Story Text -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-md p-6 sticky top-24 max-h-[80vh] overflow-y-auto">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b">
+                        <i class="fas fa-book-open mr-2 text-purple-600"></i>
+                        <span id="storyTitle">Yükleniyor...</span>
+                    </h3>
+                    <div id="storyText" class="text-gray-700 leading-relaxed text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Right: Questions -->
+            <div class="lg:col-span-2">
+                <!-- Progress with question indicators -->
+                <div class="bg-white rounded-xl shadow-md p-4 mb-6">
+                    <div class="flex justify-between items-center text-sm mb-3">
+                        <span class="font-semibold text-gray-700">
+                            <i class="fas fa-tasks mr-1"></i> Soru <span id="currentQ">1</span>/<span
+                                id="totalCount">0</span>
+                        </span>
+                        <span class="text-gray-600">
+                            <span id="answeredCount">0</span> Cevaplandı
+                        </span>
+                    </div>
+                    <div class="flex gap-2 mb-3" id="questionIndicators"></div>
+                    <div class="bg-gray-200 rounded-full h-3">
+                        <div id="progressBar"
+                            class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-full h-3 transition-all duration-500 w-0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Questions Container -->
+                <div id="questionsContainer" class="space-y-6">
+                    <div class="text-center py-12">
+                        <i class="fas fa-spinner fa-spin text-4xl text-purple-600"></i>
+                        <p class="mt-4 text-gray-500">Sorular yükleniyor...</p>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="bg-white rounded-xl shadow-md p-6 mt-6 hidden" id="submitContainer">
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-600">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Tüm soruları cevapladıktan sonra sınavı bitirebilirsiniz
+                        </div>
+                        <button id="submitBtn" onclick="submitAnswers()" disabled
+                            class="gradient-bg text-white px-8 py-3 rounded-lg font-bold text-lg hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fas fa-check-circle mr-2"></i>Sınavı Bitir
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Modal -->
+    <div id="resultsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+            <div id="resultIcon" class="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 celebrate">
+                <!-- Dynamic icon -->
+            </div>
+            <h2 id="resultTitle" class="text-3xl font-bold text-gray-800 mb-2"></h2>
+            <p id="resultMessage" class="text-gray-600 mb-6"></p>
+
+            <!-- Score Display -->
+            <div class="bg-gray-50 rounded-xl p-6 mb-6">
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <p class="text-3xl font-bold text-purple-600" id="scoreDisplay">0</p>
+                        <p class="text-sm text-gray-500">Puan</p>
+                    </div>
+                    <div>
+                        <p class="text-3xl font-bold text-green-600" id="correctCount">0</p>
+                        <p class="text-sm text-gray-500">Doğru</p>
+                    </div>
+                    <div>
+                        <p class="text-3xl font-bold text-blue-600" id="timeSpent">0:00</p>
+                        <p class="text-sm text-gray-500">Süre</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- XP Earned -->
+            <div id="xpEarned" class="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-xl p-4 mb-6">
+                <p class="text-lg font-bold text-orange-600">
+                    <i class="fas fa-star mr-2"></i>+<span id="xpAmount">0</span> XP Kazandın!
+                </p>
+            </div>
+
+            <div class="flex flex-col gap-3">
+                <button onclick="window.location.href='my-progress.html'"
+                    class="bg-purple-100 text-purple-700 px-6 py-3 rounded-lg font-bold hover:bg-purple-200 transition">
+                    <i class="fas fa-chart-line mr-2"></i>İlerlemeyi Gör
+                </button>
+                <button onclick="window.location.href='dashboard.html'"
+                    class="bg-purple-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-purple-700 transition">
+                    <i class="fas fa-home mr-2"></i>Ana Sayfaya Dön
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        if (!checkAuth()) window.location.href = '../login.html';
+        const user = getCurrentUserInfo();
+        document.getElementById('userName').textContent = user.ad_soyad;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const storyId = urlParams.get('id');
+        if (!storyId) window.location.href = 'dashboard.html';
+
+        let story = null;
+        let questions = [];
+        let answers = {};
+        let isLegacy = false;
+        let startTime = Date.now();
+        let timerInterval = null;
+
+        // Start timer
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const mins = Math.floor(elapsed / 60);
+                const secs = elapsed % 60;
+                document.getElementById('timerText').textContent =
+                    `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        async function loadData() {
+            startTimer();
+            try {
+                story = await API.getStory(storyId);
+                document.getElementById('storyTitle').textContent = story.baslik;
+                document.getElementById('storyText').innerHTML = story.metin.replace(/\n/g, '<br><br>');
+
+                if (story.sorular) {
+                    const rawQuestions = JSON.parse(story.sorular);
+                    questions = rawQuestions.map((q, idx) => ({
+                        id: idx,
+                        text: q.soru_metni,
+                        type: q.cevap_tipi,
+                        options: q.secenekler,
+                        correctAnswer: q.dogru_cevap,
+                        legacy: false
+                    }));
+                } else {
+                    isLegacy = true;
+                    const legacyQs = await API.getQuizQuestions(storyId);
+                    questions = legacyQs.map((q, idx) => ({
+                        id: idx,
+                        dbId: q.id,
+                        text: q.question_text,
+                        type: 'test',
+                        options: {
+                            A: q.option_a,
+                            B: q.option_b,
+                            C: q.option_c,
+                            D: q.option_d
+                        },
+                        correctAnswer: q.correct_answer,
+                        legacy: true
+                    }));
+
+                    questions.push({
+                        id: questions.length,
+                        text: "Bu hikâyeden ne öğrendin? Kendi cümlelerinle açıkla.",
+                        type: 'text',
+                        legacy: true,
+                        isOpenEnded: true
+                    });
+                }
+
+                renderQuestions();
+                renderQuestionIndicators();
+            } catch (e) {
+                console.error(e);
+                alert("Veri yüklenemedi.");
+            }
+        }
+
+        function renderQuestionIndicators() {
+            const container = document.getElementById('questionIndicators');
+            container.innerHTML = questions.map((q, idx) => `
+                <div id="indicator-${idx}" 
+                    class="w-8 h-8 rounded-full border-2 border-gray-300 flex items-center justify-center text-sm font-bold text-gray-400 transition-all cursor-pointer hover:border-purple-400"
+                    onclick="scrollToQuestion(${idx})">
+                    ${idx + 1}
+                </div>
+            `).join('');
+        }
+
+        function updateIndicator(idx, answered) {
+            const indicator = document.getElementById(`indicator-${idx}`);
+            if (answered) {
+                indicator.classList.remove('border-gray-300', 'text-gray-400');
+                indicator.classList.add('border-green-500', 'bg-green-500', 'text-white');
+                indicator.innerHTML = '<i class="fas fa-check"></i>';
+            }
+        }
+
+        function scrollToQuestion(idx) {
+            const cards = document.querySelectorAll('.question-card');
+            if (cards[idx]) {
+                cards[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questionsContainer');
+
+            if (questions.length === 0) {
+                container.innerHTML = '<div class="text-center p-6 bg-white rounded-xl">Soru bulunamadı.</div>';
+                return;
+            }
+
+            document.getElementById('totalCount').textContent = questions.length;
+
+            container.innerHTML = questions.map((q, idx) => `
+                <div class="bg-white rounded-xl shadow-md p-6 question-card question-enter" id="question-${idx}">
+                    <h3 class="font-bold text-gray-800 mb-4 flex items-start">
+                        <span class="bg-gradient-to-r from-purple-500 to-pink-500 text-white w-10 h-10 rounded-full flex items-center justify-center mr-3 text-sm flex-shrink-0 font-bold">${idx + 1}</span>
+                        <span class="pt-2">${q.text}</span>
+                    </h3>
+                    ${renderAnswerInput(q, idx)}
+                </div>
+            `).join('');
+
+            document.getElementById('submitContainer').classList.remove('hidden');
+        }
+
+        function renderAnswerInput(q, idx) {
+            if (q.type === 'text') {
+                return `
+                    <textarea oninput="handleTextAnswer(${idx}, this.value)" rows="4" 
+                        class="w-full border-2 border-gray-200 rounded-xl p-4 focus:border-purple-500 focus:outline-none placeholder-gray-400 transition-all focus:ring-2 focus:ring-purple-200" 
+                        placeholder="Cevabınızı buraya yazın..."></textarea>
+                `;
+            } else if (q.type === 'test') {
+                const opts = q.options;
+                const letters = ['A', 'B', 'C', 'D'];
+                const colors = ['blue', 'green', 'orange', 'pink'];
+
+                return `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${Object.keys(opts).map((key, i) => `
+                            <div class="option-card border-2 border-gray-200 rounded-xl p-4 flex items-center group hover:border-${colors[i]}-300"
+                                onclick="selectOption(${idx}, '${key}', this)" id="option-${idx}-${key}">
+                                <div class="w-10 h-10 rounded-full bg-${colors[i]}-100 flex items-center justify-center mr-4 font-bold text-${colors[i]}-600 transition-all option-indicator">
+                                    ${key}
+                                </div>
+                                <span class="text-gray-700 font-medium">${opts[key]}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+        }
+
+        function selectOption(qIdx, val, element) {
+            const parent = element.parentElement;
+            parent.querySelectorAll('.option-card').forEach(el => {
+                el.classList.remove('selected', 'border-purple-600', 'bg-purple-50');
+            });
+
+            element.classList.add('selected');
+            answers[qIdx] = val;
+            updateIndicator(qIdx, true);
+            updateProgress();
+        }
+
+        function handleTextAnswer(qIdx, val) {
+            if (val.trim().length > 0) {
+                answers[qIdx] = val.trim();
+                updateIndicator(qIdx, true);
+            } else {
+                delete answers[qIdx];
+            }
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const count = Object.keys(answers).filter(k => answers[k] && answers[k].length > 0).length;
+            document.getElementById('answeredCount').textContent = count;
+            document.getElementById('currentQ').textContent = Math.min(count + 1, questions.length);
+            const percentage = (count / questions.length) * 100;
+            document.getElementById('progressBar').style.width = percentage + '%';
+
+            // Enable/disable submit button
+            document.getElementById('submitBtn').disabled = count < questions.length;
+        }
+
+        function calculateScore() {
+            let correct = 0;
+            let total = 0;
+
+            questions.forEach((q, idx) => {
+                if (q.type === 'test') {
+                    total++;
+                    const userAnswer = answers[idx];
+                    const correctAnswer = q.correctAnswer || q.correct_answer;
+
+                    if (userAnswer && correctAnswer && userAnswer.toUpperCase() === correctAnswer.toUpperCase()) {
+                        correct++;
+                    }
+                }
+            });
+
+            return { correct, total, percentage: total > 0 ? Math.round((correct / total) * 100) : 0 };
+        }
+
+        async function submitAnswers() {
+            clearInterval(timerInterval);
+
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const mins = Math.floor(elapsed / 60);
+            const secs = elapsed % 60;
+
+            const score = calculateScore();
+
+            const payload = {
+                story_id: parseInt(storyId),
+                acik_uclu: null,
+                answers_json: null
+            };
+
+            if (isLegacy) {
+                payload.q1 = answers[0] || null;
+                payload.q2 = answers[1] || null;
+                payload.q3 = answers[2] || null;
+                payload.q4 = answers[3] || null;
+                payload.acik_uclu = answers[questions.length - 1];
+            } else {
+                payload.answers_json = questions.map((q, idx) => ({
+                    question_index: idx,
+                    answer: answers[idx]
+                }));
+            }
+
+            try {
+                const response = await API.saveAnswers(payload);
+                console.log('Save response:', response);
+            } catch (e) {
+                console.error('Save answers error:', e);
+                // Continue anyway - show results even if save failed
+            }
+
+            // Try to add XP regardless of save result
+            let xpEarned = 15; // base quiz XP
+            if (score.percentage === 100) {
+                xpEarned = 25; // perfect score
+                try {
+                    await API.addXP('perfect_score');
+                } catch (e) { console.log('XP add failed:', e); }
+            } else if (score.percentage >= 50) {
+                try {
+                    await API.addXP('quiz_passed');
+                } catch (e) { console.log('XP add failed:', e); }
+            }
+
+            showResults(score, mins, secs, xpEarned);
+        }
+
+        function showResults(score, mins, secs, xp) {
+            const modal = document.getElementById('resultsModal');
+            const iconContainer = document.getElementById('resultIcon');
+            const title = document.getElementById('resultTitle');
+            const message = document.getElementById('resultMessage');
+
+            document.getElementById('scoreDisplay').textContent = score.percentage;
+            document.getElementById('correctCount').textContent = `${score.correct}/${score.total}`;
+            document.getElementById('timeSpent').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+            document.getElementById('xpAmount').textContent = xp;
+
+            if (score.percentage >= 80) {
+                iconContainer.className = 'w-24 h-24 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6 celebrate';
+                iconContainer.innerHTML = '<i class="fas fa-trophy text-5xl text-green-500"></i>';
+                title.textContent = 'Mükemmel!';
+                message.textContent = 'Harika bir performans gösterdin!';
+                createConfetti();
+            } else if (score.percentage >= 50) {
+                iconContainer.className = 'w-24 h-24 rounded-full bg-yellow-100 flex items-center justify-center mx-auto mb-6 celebrate';
+                iconContainer.innerHTML = '<i class="fas fa-medal text-5xl text-yellow-500"></i>';
+                title.textContent = 'İyi İş!';
+                message.textContent = 'Güzel bir performans, gelişmeye devam et!';
+            } else {
+                iconContainer.className = 'w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-6 celebrate';
+                iconContainer.innerHTML = '<i class="fas fa-book-reader text-5xl text-blue-500"></i>';
+                title.textContent = 'Pratik Yap!';
+                message.textContent = 'Hikayeyi tekrar okuyarak anlama düzeyini artırabilirsin.';
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function createConfetti() {
+            const colors = ['#667eea', '#764ba2', '#f472b6', '#34d399', '#fbbf24'];
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.cssText = `
+                    left: ${Math.random() * 100}vw;
+                    top: -10px;
+                    width: 10px;
+                    height: 10px;
+                    background: ${colors[Math.floor(Math.random() * colors.length)]};
+                    border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
+                    animation: fall ${2 + Math.random() * 2}s ease-out forwards;
+                `;
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 4000);
+            }
+
+            // Add fall animation
+            if (!document.getElementById('confetti-style')) {
+                const style = document.createElement('style');
+                style.id = 'confetti-style';
+                style.textContent = `
+                    @keyframes fall {
+                        to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+
+        loadData();
+    </script>
+</body>
+
+</html>

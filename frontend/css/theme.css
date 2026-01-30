@@ -1,0 +1,188 @@
+/**
+ * Theme CSS Variables and Styles
+ * Provides color schemes for light and dark modes
+ */
+
+/* Disable transitions during theme initialization */
+.no-transition * {
+    transition: none !important;
+}
+
+/* Light Theme Colors */
+:root[data-theme="light"] {
+    /* Backgrounds */
+    --bg-primary: #f9fafb;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #f3f4f6;
+    --bg-hover: #f3f4f6;
+    
+    /* Text */
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --text-tertiary: #9ca3af;
+    
+    /* Borders */
+    --border-color: #e5e7eb;
+    --border-hover: #d1d5db;
+    
+    /* Accent Colors */
+    --accent-primary: #7c3aed;
+    --accent-hover: #6d28d9;
+    --accent-light: #ede9fe;
+    
+    /* Status Colors */
+    --success: #10b981;
+    --warning: #f59e0b;
+    --error: #ef4444;
+    --info: #3b82f6;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark Theme Colors */
+:root[data-theme="dark"] {
+    /* Backgrounds */
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+    --bg-hover: #475569;
+    
+    /* Text */
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-tertiary: #94a3b8;
+    
+    /* Borders */
+    --border-color: #475569;
+    --border-hover: #64748b;
+    
+    /* Accent Colors */
+    --accent-primary: #a78bfa;
+    --accent-hover: #8b5cf6;
+    --accent-light: #4c1d95;
+    
+    /* Status Colors */
+    --success: #34d399;
+    --warning: #fbbf24;
+    --error: #f87171;
+    --info: #60a5fa;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+}
+
+/* Apply theme to body */
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Navigation */
+nav {
+    background-color: var(--bg-secondary) !important;
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Cards and Containers */
+.bg-white {
+    background-color: var(--bg-secondary) !important;
+}
+
+.bg-gray-50 {
+    background-color: var(--bg-tertiary) !important;
+}
+
+.bg-gray-100 {
+    background-color: var(--bg-hover) !important;
+}
+
+/* Text Colors */
+.text-gray-800 {
+    color: var(--text-primary) !important;
+}
+
+.text-gray-600 {
+    color: var(--text-secondary) !important;
+}
+
+.text-gray-500 {
+    color: var(--text-tertiary) !important;
+}
+
+/* Borders */
+.border-gray-200,
+.border-gray-300 {
+    border-color: var(--border-color) !important;
+}
+
+/* Inputs */
+input, textarea, select {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+input:focus, textarea:focus, select:focus {
+    border-color: var(--accent-primary);
+    background-color: var(--bg-secondary);
+}
+
+input::placeholder, textarea::placeholder {
+    color: var(--text-tertiary);
+}
+
+/* Buttons */
+button:not(.gradient-bg):not(.bg-purple-600):not(.bg-blue-600):not(.bg-green-600):not(.bg-red-600) {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+button:hover:not(.gradient-bg) {
+    background-color: var(--bg-hover);
+}
+
+/* Shadows */
+.shadow-sm {
+    box-shadow: var(--shadow-sm);
+}
+
+.shadow-md {
+    box-shadow: var(--shadow-md);
+}
+
+.shadow-lg {
+    box-shadow: var(--shadow-lg);
+}
+
+/* Theme Toggle Button */
+#themeToggle {
+    background-color: var(--bg-tertiary);
+    transition: all 0.3s ease;
+}
+
+#themeToggle:hover {
+    background-color: var(--bg-hover);
+    transform: scale(1.05);
+}
+
+#themeToggle i {
+    transition: transform 0.3s ease;
+}
+
+#themeToggle:hover i {
+    transform: rotate(20deg);
+}
+
+/* Smooth transitions for theme changes */
+* {
+    transition-property: background-color, border-color, color;
+    transition-duration: 0.3s;
+    transition-timing-function: ease;
+}

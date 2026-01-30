@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İlerleme Grafiklerim - Okuma Geliştirme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/theme.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-lg sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="dashboard.html" class="flex items-center">
+                        <i class="fas fa-arrow-left text-purple-600 mr-3"></i>
+                        <i class="fas fa-chart-line text-2xl text-purple-600 mr-3"></i>
+                        <span class="text-xl font-bold text-gray-800">İlerleme Grafiklerim</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-600" id="userName"></span>
+                    <button id="themeToggle" class="p-2 rounded-lg hover:bg-gray-100 transition">
+                        <i class="fas fa-moon text-gray-600"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Welcome -->
+        <div class="gradient-bg text-white rounded-xl p-6 mb-8 shadow-lg">
+            <h1 class="text-2xl font-bold mb-2">📊 İlerleme Grafiklerim</h1>
+            <p class="text-purple-100">Okuma hızın ve gelişimin burada!</p>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Ortalama Hız</p>
+                        <p class="text-3xl font-bold text-purple-600" id="avgSpeed">-</p>
+                        <p class="text-xs text-gray-400">kelime/dakika</p>
+                    </div>
+                    <i class="fas fa-tachometer-alt text-4xl text-purple-200"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">En Yüksek Hız</p>
+                        <p class="text-3xl font-bold text-green-600" id="maxSpeed">-</p>
+                        <p class="text-xs text-gray-400">kelime/dakika</p>
+                    </div>
+                    <i class="fas fa-arrow-up text-4xl text-green-200"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Toplam Okuma</p>
+                        <p class="text-3xl font-bold text-blue-600" id="totalReadings">-</p>
+                        <p class="text-xs text-gray-400">okuma seansı</p>
+                    </div>
+                    <i class="fas fa-book-open text-4xl text-blue-200"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Trend</p>
+                        <p class="text-3xl font-bold" id="trend">-</p>
+                        <p class="text-xs text-gray-400" id="trendLabel">son dönem</p>
+                    </div>
+                    <i class="fas fa-chart-line text-4xl text-orange-200" id="trendIcon"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reading Speed Chart -->
+        <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100 mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold text-gray-800">
+                    <i class="fas fa-chart-area mr-2 text-purple-600"></i>
+                    Okuma Hızı Gelişimi
+                </h2>
+                <select id="dayFilter" class="border rounded-lg px-3 py-1 text-sm" onchange="loadCharts()">
+                    <option value="7">Son 7 gün</option>
+                    <option value="30" selected>Son 30 gün</option>
+                    <option value="90">Son 3 ay</option>
+                </select>
+            </div>
+            <div class="chart-container">
+                <canvas id="speedChart"></canvas>
+            </div>
+            <div id="speedChartEmpty" class="hidden text-center py-8 text-gray-500">
+                <i class="fas fa-chart-line text-4xl mb-4 text-gray-300"></i>
+                <p>Henüz yeterli okuma verisi yok.</p>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8">
+            <!-- Story Progress Chart -->
+            <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-book mr-2 text-blue-600"></i>
+                    Hikaye Bazlı Gelişim
+                </h2>
+                <div class="chart-container">
+                    <canvas id="storyChart"></canvas>
+                </div>
+                <div id="storyChartEmpty" class="hidden text-center py-8 text-gray-500">
+                    <i class="fas fa-book text-4xl mb-4 text-gray-300"></i>
+                    <p>Hikaye verisi bulunamadı.</p>
+                </div>
+            </div>
+
+            <!-- Weekly Activity Chart -->
+            <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-calendar-week mr-2 text-green-600"></i>
+                    Haftalık Aktivite
+                </h2>
+                <div class="chart-container">
+                    <canvas id="activityChart"></canvas>
+                </div>
+                <div id="activityChartEmpty" class="hidden text-center py-8 text-gray-500">
+                    <i class="fas fa-calendar text-4xl mb-4 text-gray-300"></i>
+                    <p>Aktivite verisi bulunamadı.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/theme.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        // Check auth
+        if (!checkAuth()) window.location.href = '../login.html';
+        const user = getCurrentUserInfo();
+        document.getElementById('userName').textContent = user.ad_soyad;
+
+        // Chart instances
+        let speedChartInstance = null;
+        let storyChartInstance = null;
+        let activityChartInstance = null;
+
+        // Load all charts
+        async function loadCharts() {
+            const days = document.getElementById('dayFilter').value;
+
+            try {
+                // Load speed chart
+                const speedData = await API.getMyReadingSpeedChart(days);
+                updateSpeedChart(speedData);
+                updateSummaryCards(speedData.summary);
+            } catch (e) {
+                console.error('Speed chart error:', e);
+                document.getElementById('speedChartEmpty').classList.remove('hidden');
+            }
+
+            try {
+                // Load story progress chart
+                const storyData = await API.getMyStoryProgressChart();
+                updateStoryChart(storyData);
+            } catch (e) {
+                console.error('Story chart error:', e);
+                document.getElementById('storyChartEmpty').classList.remove('hidden');
+            }
+
+            try {
+                // Load weekly activity chart
+                const activityData = await API.getMyWeeklyActivityChart();
+                updateActivityChart(activityData);
+            } catch (e) {
+                console.error('Activity chart error:', e);
+                document.getElementById('activityChartEmpty').classList.remove('hidden');
+            }
+        }
+
+        function updateSummaryCards(summary) {
+            document.getElementById('avgSpeed').textContent = summary.average_speed || '-';
+            document.getElementById('maxSpeed').textContent = summary.max_speed || '-';
+            document.getElementById('totalReadings').textContent = summary.total_readings || '-';
+
+            const trendEl = document.getElementById('trend');
+            const trendIcon = document.getElementById('trendIcon');
+
+            if (summary.trend === 'up') {
+                trendEl.textContent = '↑ Yükseliş';
+                trendEl.className = 'text-3xl font-bold text-green-600';
+                trendIcon.className = 'fas fa-arrow-trend-up text-4xl text-green-200';
+            } else if (summary.trend === 'down') {
+                trendEl.textContent = '↓ Düşüş';
+                trendEl.className = 'text-3xl font-bold text-red-600';
+                trendIcon.className = 'fas fa-arrow-trend-down text-4xl text-red-200';
+            } else {
+                trendEl.textContent = '→ Stabil';
+                trendEl.className = 'text-3xl font-bold text-yellow-600';
+                trendIcon.className = 'fas fa-equals text-4xl text-yellow-200';
+            }
+        }
+
+        function updateSpeedChart(data) {
+            if (!data.data || data.data.length === 0) {
+                document.getElementById('speedChartEmpty').classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('speedChartEmpty').classList.add('hidden');
+
+            const ctx = document.getElementById('speedChart').getContext('2d');
+
+            if (speedChartInstance) {
+                speedChartInstance.destroy();
+            }
+
+            speedChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: data.chart_config,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function (context) {
+                                    const point = data.data[context.dataIndex];
+                                    return point ? `Hikaye: ${point.story}` : '';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'kelime/dakika' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateStoryChart(data) {
+            if (!data.stories || data.stories.length === 0) {
+                document.getElementById('storyChartEmpty').classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('storyChartEmpty').classList.add('hidden');
+
+            const ctx = document.getElementById('storyChart').getContext('2d');
+
+            if (storyChartInstance) {
+                storyChartInstance.destroy();
+            }
+
+            storyChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: data.chart_config,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'top' }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'kelime/dakika' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateActivityChart(data) {
+            if (!data.data || data.data.every(d => d.count === 0)) {
+                document.getElementById('activityChartEmpty').classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('activityChartEmpty').classList.add('hidden');
+
+            const ctx = document.getElementById('activityChart').getContext('2d');
+
+            if (activityChartInstance) {
+                activityChartInstance.destroy();
+            }
+
+            activityChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: data.chart_config,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'right' }
+                    }
+                }
+            });
+        }
+
+        // Initialize
+        loadCharts();
+    </script>
+</body>
+
+</html>

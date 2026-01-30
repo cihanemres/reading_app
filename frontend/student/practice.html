@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pratik Yap - Okuma Geliştirme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .reading-text {
+            line-height: 2;
+            font-size: 18px;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="dashboard.html" class="text-purple-600 hover:text-purple-700 mr-4">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </a>
+                    <span class="text-xl font-bold text-gray-800">Pratik Yap</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <p class="text-sm font-semibold text-gray-800" id="userName">Yükleniyor...</p>
+                    </div>
+                    <button onclick="performLogout()" class="text-red-600 hover:text-red-700">
+                        <i class="fas fa-sign-out-alt text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid lg:grid-cols-3 gap-6">
+            <!-- Left Column - Reading Area -->
+            <div class="lg:col-span-2">
+                <!-- Story Header -->
+                <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                    <h1 class="text-2xl font-bold text-gray-800 mb-2" id="storyTitle">Yükleniyor...</h1>
+                    <div class="flex items-center space-x-4 text-sm text-gray-600">
+                        <span><i class="fas fa-layer-group mr-1"></i><span id="storyGrade">-</span>. Sınıf</span>
+                        <span><i class="fas fa-file-word mr-1"></i><span id="wordCount">0</span> kelime</span>
+                        <span class="text-purple-600 font-semibold">
+                            <i class="fas fa-redo mr-1"></i>Pratik #<span id="attemptNumber">1</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Timer Card -->
+                <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-2">Okuma Süresi</h3>
+                            <div class="text-4xl font-bold text-purple-600" id="timer">00:00</div>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button id="startBtn"
+                                class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition">
+                                <i class="fas fa-play mr-2"></i>Başlat
+                            </button>
+                            <button id="stopBtn"
+                                class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition hidden">
+                                <i class="fas fa-stop mr-2"></i>Bitir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Story Text -->
+                <div class="bg-white rounded-xl shadow-md p-8">
+                    <div id="storyText" class="reading-text text-gray-800 leading-relaxed">
+                        <div class="text-center py-12">
+                            <i class="fas fa-spinner fa-spin text-4xl text-purple-600"></i>
+                            <p class="text-gray-600 mt-4">Hikâye yükleniyor...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Progress & History -->
+            <div class="lg:col-span-1">
+                <!-- Progress Summary -->
+                <div class="bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl shadow-md p-6 text-white mb-6">
+                    <h3 class="text-lg font-semibold mb-4">
+                        <i class="fas fa-chart-line mr-2"></i>İlerleme Özeti
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                            <p class="text-sm text-purple-100">İlk Okuma Hızı</p>
+                            <p class="text-2xl font-bold" id="firstSpeed">-</p>
+                            <p class="text-xs text-purple-100">kelime/dakika</p>
+                        </div>
+                        <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                            <p class="text-sm text-purple-100">Son Okuma Hızı</p>
+                            <p class="text-2xl font-bold" id="lastSpeed">-</p>
+                            <p class="text-xs text-purple-100">kelime/dakika</p>
+                        </div>
+                        <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                            <p class="text-sm text-purple-100">Gelişim</p>
+                            <p class="text-2xl font-bold" id="improvement">-</p>
+                            <p class="text-xs text-purple-100">kelime/dakika artış</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Practice History -->
+                <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-history mr-2"></i>Pratik Geçmişi
+                    </h3>
+                    <div id="practiceHistory" class="space-y-2 max-h-64 overflow-y-auto">
+                        <p class="text-gray-500 text-sm text-center py-4">Yükleniyor...</p>
+                    </div>
+                </div>
+
+                <!-- Progress Chart -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-chart-area mr-2"></i>Gelişim Grafiği
+                    </h3>
+                    <canvas id="progressChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Modal -->
+        <div id="resultsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
+                <div class="text-center">
+                    <div class="inline-block bg-green-100 rounded-full p-4 mb-4">
+                        <i class="fas fa-check-circle text-5xl text-green-600"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Harika İş Çıkardın!</h2>
+
+                    <div class="bg-gray-50 rounded-lg p-6 mb-6">
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <p class="text-gray-600 text-sm">Süre</p>
+                                <p class="text-xl font-bold text-gray-800" id="modalTime">-</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600 text-sm">Hız</p>
+                                <p class="text-xl font-bold text-purple-600" id="modalSpeed">-</p>
+                                <p class="text-xs text-gray-500">kelime/dk</p>
+                            </div>
+                        </div>
+
+                        <div id="improvementBadge" class="hidden">
+                            <div class="bg-green-100 text-green-800 rounded-lg p-3">
+                                <i class="fas fa-arrow-up mr-2"></i>
+                                <span class="font-semibold" id="improvementText">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-3">
+                        <button onclick="location.reload()"
+                            class="flex-1 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition">
+                            <i class="fas fa-redo mr-2"></i>Tekrar Pratik
+                        </button>
+                        <button onclick="window.location.href='quiz.html?id=' + storyId"
+                            class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-question-circle mr-2"></i>Sınav
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        // Check authentication
+        if (!checkAuth()) {
+            window.location.href = '../login.html';
+        }
+
+        const user = getCurrentUserInfo();
+        document.getElementById('userName').textContent = user.ad_soyad;
+
+        // Get story ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const storyId = urlParams.get('id');
+
+        if (!storyId) {
+            alert('Hikâye bulunamadı!');
+            window.location.href = 'dashboard.html';
+        }
+
+        let story = null;
+        let progressData = null;
+        let timerInterval = null;
+        let startTime = null;
+        let elapsedSeconds = 0;
+        let chart = null;
+
+        // Timer functions
+        function updateTimer() {
+            const minutes = Math.floor(elapsedSeconds / 60);
+            const seconds = elapsedSeconds % 60;
+            document.getElementById('timer').textContent =
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        document.getElementById('startBtn').addEventListener('click', () => {
+            startTime = Date.now() - (elapsedSeconds * 1000);
+            timerInterval = setInterval(() => {
+                elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+                updateTimer();
+            }, 1000);
+
+            document.getElementById('startBtn').classList.add('hidden');
+            document.getElementById('stopBtn').classList.remove('hidden');
+        });
+
+        document.getElementById('stopBtn').addEventListener('click', async () => {
+            clearInterval(timerInterval);
+            await savePractice();
+        });
+
+        // Load story and progress
+        async function loadData() {
+            try {
+                // Load story
+                story = await API.getStory(storyId);
+                document.getElementById('storyTitle').textContent = story.baslik;
+                document.getElementById('storyGrade').textContent = story.sinif_duzeyi;
+                document.getElementById('wordCount').textContent = story.kelime_sayisi || 0;
+                document.getElementById('storyText').innerHTML = story.metin.replace(/\n/g, '<br><br>');
+
+                // Load progress
+                progressData = await API.getProgress(storyId);
+
+                if (progressData.improvement && progressData.improvement.has_data) {
+                    const imp = progressData.improvement;
+                    document.getElementById('firstSpeed').textContent = Math.round(imp.first_reading.speed_wpm);
+                    document.getElementById('lastSpeed').textContent = Math.round(imp.last_reading.speed_wpm);
+                    document.getElementById('improvement').textContent =
+                        `+${Math.round(imp.improvement.speed_increase_wpm)}`;
+
+                    document.getElementById('attemptNumber').textContent = imp.total_attempts + 1;
+                }
+
+                // Load practice history
+                loadPracticeHistory();
+
+                // Create chart
+                createChart();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                alert('Veri yüklenirken hata oluştu!');
+            }
+        }
+
+        function loadPracticeHistory() {
+            const historyContainer = document.getElementById('practiceHistory');
+
+            if (!progressData.practice_history || progressData.practice_history.length === 0) {
+                historyContainer.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">Henüz pratik kaydı yok</p>';
+                return;
+            }
+
+            historyContainer.innerHTML = progressData.practice_history.map((practice, index) => `
+                <div class="bg-gray-50 rounded-lg p-3">
+                    <div class="flex justify-between items-center">
+                        <span class="font-semibold text-gray-800">Pratik #${practice.attempt}</span>
+                        <span class="text-purple-600 font-bold">${Math.round(practice.speed_wpm)} k/dk</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">
+                        ${Math.floor(practice.time_seconds / 60)}:${String(Math.floor(practice.time_seconds % 60)).padStart(2, '0')}
+                    </p>
+                </div>
+            `).join('');
+        }
+
+        function createChart() {
+            const ctx = document.getElementById('progressChart').getContext('2d');
+
+            let labels = [];
+            let data = [];
+
+            if (progressData.improvement && progressData.improvement.has_data) {
+                labels.push('İlk Okuma');
+                data.push(progressData.improvement.first_reading.speed_wpm);
+
+                progressData.practice_history.forEach((practice, index) => {
+                    labels.push(`Pratik #${practice.attempt}`);
+                    data.push(practice.speed_wpm);
+                });
+            } else {
+                labels = ['Henüz veri yok'];
+                data = [0];
+            }
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Okuma Hızı (kelime/dakika)',
+                        data: data,
+                        borderColor: 'rgb(102, 126, 234)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (value) {
+                                    return value + ' k/dk';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function savePractice() {
+            const practiceData = {
+                story_id: parseInt(storyId),
+                okuma_suresi: elapsedSeconds,
+                kelime_sayisi: story.kelime_sayisi || 0
+            };
+
+            try {
+                const result = await API.savePractice(practiceData);
+
+                // Show results modal
+                const speed = result.okuma_hizi || 0;
+                document.getElementById('modalTime').textContent =
+                    `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, '0')}`;
+                document.getElementById('modalSpeed').textContent = Math.round(speed);
+
+                // Show improvement if applicable
+                if (progressData.improvement && progressData.improvement.has_data) {
+                    const lastSpeed = progressData.improvement.last_reading.speed_wpm;
+                    const improvement = speed - lastSpeed;
+
+                    if (improvement > 0) {
+                        document.getElementById('improvementBadge').classList.remove('hidden');
+                        document.getElementById('improvementText').textContent =
+                            `${Math.round(improvement)} kelime/dakika daha hızlı!`;
+                    }
+                }
+
+                document.getElementById('resultsModal').classList.remove('hidden');
+                document.getElementById('resultsModal').classList.add('flex');
+            } catch (error) {
+                console.error('Error saving practice:', error);
+                alert('Pratik kaydedilirken hata oluştu!');
+            }
+        }
+
+        // Initialize
+        loadData();
+    </script>
+</body>
+
+</html>

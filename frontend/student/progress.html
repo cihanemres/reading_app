@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İlerleme - Okuma Geliştirme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .celebration {
+            animation: celebrate 1s ease-in-out;
+        }
+
+        @keyframes celebrate {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="dashboard.html" class="text-purple-600 hover:text-purple-700 mr-4">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </a>
+                    <span class="text-xl font-bold text-gray-800">İlerleme Raporu</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <p class="text-sm font-semibold text-gray-800" id="userName">Yükleniyor...</p>
+                    </div>
+                    <button onclick="performLogout()" class="text-red-600 hover:text-red-700">
+                        <i class="fas fa-sign-out-alt text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Story Header -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2" id="storyTitle">Yükleniyor...</h1>
+            <p class="text-gray-600">
+                <i class="fas fa-chart-line mr-2"></i>
+                Okuma gelişim raporun
+            </p>
+        </div>
+
+        <!-- Celebration Banner (if improved) -->
+        <div id="celebrationBanner" class="hidden gradient-bg text-white rounded-xl shadow-lg p-8 mb-6 celebration">
+            <div class="text-center">
+                <i class="fas fa-trophy text-6xl mb-4"></i>
+                <h2 class="text-3xl font-bold mb-2">Harika İş Çıkardın! 🎉</h2>
+                <p class="text-xl text-purple-100 mb-4">Okuma hızın arttı!</p>
+                <div class="inline-block bg-white bg-opacity-20 rounded-lg px-8 py-4">
+                    <p class="text-4xl font-bold" id="improvementAmount">+0</p>
+                    <p class="text-sm text-purple-100">kelime/dakika artış</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparison Cards -->
+        <div class="grid md:grid-cols-2 gap-6 mb-6">
+            <!-- First Reading -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">
+                        <i class="fas fa-flag text-blue-600 mr-2"></i>
+                        İlk Okuma
+                    </h3>
+                    <span class="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">Başlangıç</span>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <p class="text-sm text-gray-600 mb-1">Okuma Süresi</p>
+                        <p class="text-3xl font-bold text-blue-600" id="firstTime">-</p>
+                    </div>
+
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <p class="text-sm text-gray-600 mb-1">Okuma Hızı</p>
+                        <p class="text-3xl font-bold text-blue-600" id="firstSpeed">-</p>
+                        <p class="text-xs text-gray-500">kelime/dakika</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Last Reading -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">
+                        <i class="fas fa-flag-checkered text-green-600 mr-2"></i>
+                        Son Okuma
+                    </h3>
+                    <span class="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full">Güncel</span>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="bg-green-50 rounded-lg p-4">
+                        <p class="text-sm text-gray-600 mb-1">Okuma Süresi</p>
+                        <p class="text-3xl font-bold text-green-600" id="lastTime">-</p>
+                    </div>
+
+                    <div class="bg-green-50 rounded-lg p-4">
+                        <p class="text-sm text-gray-600 mb-1">Okuma Hızı</p>
+                        <p class="text-3xl font-bold text-green-600" id="lastSpeed">-</p>
+                        <p class="text-xs text-gray-500">kelime/dakika</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Improvement Stats -->
+        <div class="grid md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white rounded-xl shadow-md p-6 text-center">
+                <i class="fas fa-tachometer-alt text-3xl text-purple-600 mb-3"></i>
+                <p class="text-gray-600 text-sm">Hız Artışı</p>
+                <p class="text-2xl font-bold text-purple-600" id="speedIncrease">-</p>
+                <p class="text-xs text-gray-500">kelime/dakika</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md p-6 text-center">
+                <i class="fas fa-percentage text-3xl text-blue-600 mb-3"></i>
+                <p class="text-gray-600 text-sm">Yüzde Artış</p>
+                <p class="text-2xl font-bold text-blue-600" id="percentIncrease">-</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md p-6 text-center">
+                <i class="fas fa-clock text-3xl text-green-600 mb-3"></i>
+                <p class="text-gray-600 text-sm">Zaman Kazancı</p>
+                <p class="text-2xl font-bold text-green-600" id="timeSaved">-</p>
+                <p class="text-xs text-gray-500">saniye</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md p-6 text-center">
+                <i class="fas fa-redo text-3xl text-orange-600 mb-3"></i>
+                <p class="text-gray-600 text-sm">Toplam Pratik</p>
+                <p class="text-2xl font-bold text-orange-600" id="totalAttempts">-</p>
+            </div>
+        </div>
+
+        <!-- Progress Chart -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-6">
+                <i class="fas fa-chart-area mr-2 text-purple-600"></i>
+                Gelişim Grafiği
+            </h3>
+            <canvas id="progressChart"></canvas>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-center space-x-4">
+            <button onclick="window.location.href='practice.html?id=' + storyId"
+                class="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 transition">
+                <i class="fas fa-redo mr-2"></i>Daha Fazla Pratik Yap
+            </button>
+            <button onclick="window.location.href='dashboard.html'"
+                class="bg-gray-600 text-white px-8 py-3 rounded-lg hover:bg-gray-700 transition">
+                <i class="fas fa-home mr-2"></i>Ana Sayfaya Dön
+            </button>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        // Check authentication
+        if (!checkAuth()) {
+            window.location.href = '../login.html';
+        }
+
+        const user = getCurrentUserInfo();
+        document.getElementById('userName').textContent = user.ad_soyad;
+
+        // Get story ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const storyId = urlParams.get('id');
+
+        if (!storyId) {
+            alert('Hikâye bulunamadı!');
+            window.location.href = 'dashboard.html';
+        }
+
+        let story = null;
+        let progressData = null;
+
+        // Format time helper
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${String(secs).padStart(2, '0')}`;
+        }
+
+        // Load data
+        async function loadData() {
+            try {
+                // Load story
+                story = await API.getStory(storyId);
+                document.getElementById('storyTitle').textContent = story.baslik;
+
+                // Load progress
+                progressData = await API.getProgress(storyId);
+
+                if (!progressData.improvement || !progressData.improvement.has_data) {
+                    alert('Henüz okuma kaydı bulunmuyor!');
+                    window.location.href = 'dashboard.html';
+                    return;
+                }
+
+                const imp = progressData.improvement;
+
+                // First reading
+                document.getElementById('firstTime').textContent = formatTime(imp.first_reading.time_seconds);
+                document.getElementById('firstSpeed').textContent = Math.round(imp.first_reading.speed_wpm);
+
+                // Last reading
+                document.getElementById('lastTime').textContent = formatTime(imp.last_reading.time_seconds);
+                document.getElementById('lastSpeed').textContent = Math.round(imp.last_reading.speed_wpm);
+
+                // Improvements
+                const speedInc = imp.improvement.speed_increase_wpm;
+                const percentInc = imp.improvement.speed_increase_percent;
+                const timeRed = imp.improvement.time_reduction_seconds;
+
+                document.getElementById('speedIncrease').textContent = `+${Math.round(speedInc)}`;
+                document.getElementById('percentIncrease').textContent = `+${Math.round(percentInc)}%`;
+                document.getElementById('timeSaved').textContent = `-${Math.round(timeRed)}`;
+                document.getElementById('totalAttempts').textContent = imp.total_attempts;
+
+                // Show celebration if improved
+                if (speedInc > 0) {
+                    document.getElementById('celebrationBanner').classList.remove('hidden');
+                    document.getElementById('improvementAmount').textContent = `+${Math.round(speedInc)}`;
+                }
+
+                // Create chart
+                createChart();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                alert('Veri yüklenirken hata oluştu!');
+                window.location.href = 'dashboard.html';
+            }
+        }
+
+        function createChart() {
+            const ctx = document.getElementById('progressChart').getContext('2d');
+
+            const labels = ['İlk Okuma'];
+            const data = [progressData.improvement.first_reading.speed_wpm];
+
+            progressData.practice_history.forEach((practice, index) => {
+                labels.push(`Pratik #${practice.attempt}`);
+                data.push(practice.speed_wpm);
+            });
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Okuma Hızı (kelime/dakika)',
+                        data: data,
+                        borderColor: 'rgb(102, 126, 234)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: 'rgb(102, 126, 234)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return Math.round(context.parsed.y) + ' kelime/dakika';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (value) {
+                                    return value + ' k/dk';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize
+        loadData();
+    </script>
+</body>
+
+</html>

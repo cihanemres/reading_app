@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veli Paneli - Okuma Geliştirme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/notifications.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-user-friends text-2xl text-purple-600 mr-3"></i>
+                    <span class="text-xl font-bold text-gray-800">Veli Paneli</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <p class="text-sm font-semibold text-gray-800" id="userName">Yükleniyor...</p>
+                        <p class="text-xs text-gray-500">Veli</p>
+                    </div>
+                    <button id="themeToggle" class="p-2 rounded-lg hover:bg-gray-100 transition" title="Tema Değiştir">
+                        <i class="fas fa-moon text-gray-600"></i>
+                    </button>
+                    <button onclick="window.location.href='../profile.html'"
+                        class="text-purple-600 hover:text-purple-700" title="Profil Ayarları">
+                        <i class="fas fa-user-cog text-xl"></i>
+                    </button>
+                    <button onclick="performLogout()" class="text-red-600 hover:text-red-700">
+                        <i class="fas fa-sign-out-alt text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Welcome Section -->
+        <div class="gradient-bg text-white rounded-xl p-8 mb-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2">Hoş Geldiniz! 👋</h1>
+                    <p class="text-purple-100">Çocuğunuzun okuma gelişimini takip edin</p>
+                </div>
+                <button onclick="openLinkModal()"
+                    class="mt-4 md:mt-0 bg-white text-purple-600 px-6 py-3 rounded-lg font-bold hover:bg-purple-50 transition">
+                    <i class="fas fa-plus mr-2"></i>Çocuk Bağla
+                </button>
+            </div>
+        </div>
+
+        <!-- Children List -->
+        <div id="childrenContainer" class="space-y-6">
+            <div class="text-center py-12">
+                <i class="fas fa-spinner fa-spin text-4xl text-purple-600"></i>
+                <p class="text-gray-600 mt-4">Yükleniyor...</p>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="../js/theme.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        // Check authentication and role
+        if (!checkAuth()) {
+            window.location.href = '../login.html';
+        }
+
+        const user = getCurrentUserInfo();
+        if (user.rol !== 'veli') {
+            alert('Bu sayfaya erişim yetkiniz yok!');
+            window.location.href = '../login.html';
+        }
+
+        document.getElementById('userName').textContent = user.ad_soyad;
+
+        // Load children
+        async function loadChildren() {
+            try {
+                const data = await API.getChildren();
+
+                if (!data.children || data.children.length === 0) {
+                    document.getElementById('childrenContainer').innerHTML = `
+                        <div class="bg-white rounded-xl shadow-md p-12 text-center">
+                            <i class="fas fa-user-graduate text-6xl text-purple-300 mb-4"></i>
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">Henüz Bağlı Çocuk Yok</h3>
+                            <p class="text-gray-600 mb-6">Çocuğunuzun e-posta adresiyle hesabınıza bağlayabilirsiniz.</p>
+                            <button onclick="openLinkModal()" class="bg-purple-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-purple-700 transition">
+                                <i class="fas fa-link mr-2"></i>Çocuk Bağla
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Load progress for each child
+                const childrenHTML = await Promise.all(data.children.map(async (child) => {
+                    try {
+                        const progress = await API.getChildProgress(child.id);
+                        const comments = await API.getTeacherComments(child.id);
+                        const recommendations = await API.getRecommendations(child.id);
+
+                        return createChildCard(child, progress, comments, recommendations);
+                    } catch (error) {
+                        console.error(`Error loading data for child ${child.id}:`, error);
+                        return createChildCard(child, null, null, null);
+                    }
+                }));
+
+                document.getElementById('childrenContainer').innerHTML = childrenHTML.join('');
+            } catch (error) {
+                console.error('Error loading children:', error);
+                document.getElementById('childrenContainer').innerHTML = `
+                    <div class="bg-white rounded-xl shadow-md p-12 text-center">
+                        <i class="fas fa-exclamation-triangle text-6xl text-red-600 mb-4"></i>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">Hata Oluştu</h3>
+                        <p class="text-gray-600">Veriler yüklenirken bir hata oluştu.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function createChildCard(child, progress, comments, recommendations) {
+            const summary = progress?.summary || {};
+            const stories = progress?.stories || [];
+            const teacherComments = comments?.comments || [];
+            const recs = recommendations?.recommendations || [];
+
+            return `
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <!-- Child Header -->
+                    <div class="gradient-bg text-white p-6">
+                        <div class="flex items-center space-x-4">
+                            <div class="bg-white bg-opacity-20 w-16 h-16 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user-graduate text-3xl"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold">${child.ad_soyad}</h2>
+                                <p class="text-purple-100">${child.sinif_duzeyi}. Sınıf</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Summary -->
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">
+                            <i class="fas fa-chart-line mr-2 text-purple-600"></i>
+                            Genel İlerleme
+                        </h3>
+                        
+                        <div class="grid md:grid-cols-3 gap-4 mb-6">
+                            <div class="bg-purple-50 rounded-lg p-4 text-center">
+                                <i class="fas fa-book text-3xl text-purple-600 mb-2"></i>
+                                <p class="text-gray-600 text-sm">Okunan Hikâye</p>
+                                <p class="text-3xl font-bold text-purple-600">${summary.total_stories || 0}</p>
+                            </div>
+                            
+                            <div class="bg-blue-50 rounded-lg p-4 text-center">
+                                <i class="fas fa-redo text-3xl text-blue-600 mb-2"></i>
+                                <p class="text-gray-600 text-sm">Pratik Sayısı</p>
+                                <p class="text-3xl font-bold text-blue-600">${summary.total_practice_sessions || 0}</p>
+                            </div>
+                            
+                            <div class="bg-green-50 rounded-lg p-4 text-center">
+                                <i class="fas fa-tachometer-alt text-3xl text-green-600 mb-2"></i>
+                                <p class="text-gray-600 text-sm">Ortalama Hız</p>
+                                <p class="text-3xl font-bold text-green-600">${Math.round(summary.average_speed_wpm || 0)}</p>
+                                <p class="text-xs text-gray-500">kelime/dakika</p>
+                            </div>
+                        </div>
+
+                        <!-- Stories Progress -->
+                        ${stories.length > 0 ? `
+                            <h3 class="text-xl font-bold text-gray-800 mb-4 mt-6">
+                                <i class="fas fa-book-open mr-2 text-blue-600"></i>
+                                Hikâye Bazlı İlerleme
+                            </h3>
+                            <div class="space-y-3">
+                                ${stories.map(story => `
+                                    <div class="bg-gray-50 rounded-lg p-4">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <h4 class="font-bold text-gray-800">${story.story_title}</h4>
+                                            <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
+                                                ${story.grade_level}. Sınıf
+                                            </span>
+                                        </div>
+                                        ${story.improvement && story.improvement.has_data ? `
+                                            <div class="grid grid-cols-2 gap-4 mt-3">
+                                                <div>
+                                                    <p class="text-xs text-gray-600">İlk Okuma</p>
+                                                    <p class="text-lg font-bold text-blue-600">${Math.round(story.improvement.first_reading.speed_wpm)} k/dk</p>
+                                                </div>
+                                                <div>
+                                                    <p class="text-xs text-gray-600">Son Okuma</p>
+                                                    <p class="text-lg font-bold text-green-600">${Math.round(story.improvement.last_reading.speed_wpm)} k/dk</p>
+                                                </div>
+                                            </div>
+                                            ${story.improvement.improvement.speed_increase_wpm > 0 ? `
+                                                <div class="mt-2 bg-green-100 text-green-800 rounded px-3 py-2 text-sm">
+                                                    <i class="fas fa-arrow-up mr-1"></i>
+                                                    +${Math.round(story.improvement.improvement.speed_increase_wpm)} kelime/dakika gelişme
+                                                </div>
+                                            ` : ''}
+                                        ` : '<p class="text-sm text-gray-500">Henüz ilerleme verisi yok</p>'}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : '<p class="text-gray-500 text-center py-4">Henüz hikâye okunmamış</p>'}
+
+                        <!-- Teacher Comments -->
+                        ${teacherComments.length > 0 ? `
+                            <h3 class="text-xl font-bold text-gray-800 mb-4 mt-6">
+                                <i class="fas fa-comments mr-2 text-orange-600"></i>
+                                Öğretmen Yorumları
+                            </h3>
+                            <div class="space-y-3">
+                                ${teacherComments.map(comment => `
+                                    <div class="bg-orange-50 border-l-4 border-orange-600 rounded-lg p-4">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <h4 class="font-bold text-gray-800">${comment.story_title}</h4>
+                                            <span class="text-xs text-gray-500">${comment.teacher_name}</span>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-4 mb-2">
+                                            ${comment.akicilik_puan ? `
+                                                <div>
+                                                    <p class="text-xs text-gray-600">Akıcılık</p>
+                                                    <p class="text-lg font-bold text-orange-600">${comment.akicilik_puan}/10</p>
+                                                </div>
+                                            ` : ''}
+                                            ${comment.acik_soru_puani ? `
+                                                <div>
+                                                    <p class="text-xs text-gray-600">Anlama</p>
+                                                    <p class="text-lg font-bold text-orange-600">${comment.acik_soru_puani}/10</p>
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                        ${comment.ogretmen_yorumu ? `
+                                            <p class="text-gray-700 text-sm mt-2 italic">"${comment.ogretmen_yorumu}"</p>
+                                        ` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+
+                        <!-- Recommendations -->
+                        ${recs.length > 0 ? `
+                            <h3 class="text-xl font-bold text-gray-800 mb-4 mt-6">
+                                <i class="fas fa-lightbulb mr-2 text-yellow-600"></i>
+                                Pratik Önerileri
+                            </h3>
+                            <div class="bg-yellow-50 border-l-4 border-yellow-600 rounded-lg p-4">
+                                <p class="text-sm text-gray-700 mb-3">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    Aşağıdaki hikâyeler için daha fazla pratik yapılması önerilir:
+                                </p>
+                                <div class="space-y-2">
+                                    ${recs.map(rec => `
+                                        <div class="bg-white rounded p-3">
+                                            <h5 class="font-bold text-gray-800">${rec.story_title}</h5>
+                                            <ul class="text-sm text-gray-600 mt-1 list-disc list-inside">
+                                                ${rec.reasons.map(reason => `<li>${reason}</li>`).join('')}
+                                            </ul>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Initialize
+        loadChildren();
+
+        // Link child modal functions
+        function openLinkModal() {
+            document.getElementById('linkModal').classList.remove('hidden');
+            document.getElementById('linkModal').classList.add('flex');
+        }
+
+        function closeLinkModal() {
+            document.getElementById('linkModal').classList.add('hidden');
+            document.getElementById('linkModal').classList.remove('flex');
+            document.getElementById('childEmail').value = '';
+            document.getElementById('linkError').classList.add('hidden');
+        }
+
+        async function linkChild() {
+            const email = document.getElementById('childEmail').value.trim();
+            if (!email) {
+                showLinkError('Lütfen e-posta adresi girin.');
+                return;
+            }
+
+            document.getElementById('linkBtn').disabled = true;
+            document.getElementById('linkBtn').innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Bağlanıyor...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/parent/link-child`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ child_email: email })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    closeLinkModal();
+                    loadChildren();
+                    alert('✅ ' + data.message);
+                } else {
+                    showLinkError(data.detail || 'Bağlama işlemi başarısız.');
+                }
+            } catch (error) {
+                console.error(error);
+                showLinkError('Bir hata oluştu.');
+            } finally {
+                document.getElementById('linkBtn').disabled = false;
+                document.getElementById('linkBtn').innerHTML = '<i class="fas fa-link mr-2"></i>Bağla';
+            }
+        }
+
+        function showLinkError(message) {
+            const errorDiv = document.getElementById('linkError');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+    </script>
+
+    <!-- Link Child Modal -->
+    <div id="linkModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">
+                    <i class="fas fa-link text-purple-600 mr-2"></i>Çocuk Bağla
+                </h2>
+                <button onclick="closeLinkModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <p class="text-gray-600 mb-6">Çocuğunuzun kayıtlı e-posta adresini girin:</p>
+
+            <input type="email" id="childEmail" placeholder="cocuk@email.com"
+                class="w-full border-2 border-gray-200 rounded-lg px-4 py-3 mb-4 focus:border-purple-500 focus:outline-none"
+                onkeypress="if(event.key==='Enter') linkChild()">
+
+            <div id="linkError" class="hidden bg-red-100 text-red-600 px-4 py-2 rounded-lg mb-4 text-sm"></div>
+
+            <div class="flex gap-4">
+                <button onclick="closeLinkModal()"
+                    class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-bold hover:bg-gray-300 transition">
+                    İptal
+                </button>
+                <button id="linkBtn" onclick="linkChild()"
+                    class="flex-1 bg-purple-600 text-white py-3 rounded-lg font-bold hover:bg-purple-700 transition">
+                    <i class="fas fa-link mr-2"></i>Bağla
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
